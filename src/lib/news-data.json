@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "¡BubiLex Lanzado!",
+    "content": "Hoy lanzamos la primera versión de BubiLex, un diccionario y archivo cultural del pueblo Bubi. Explora la riqueza de esta lengua y cultura.",
+    "date": "2025-09-30",
+    "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop",
+    "likes": 12
+  },
+  {
+    "id": 2,
+    "title": "La leyenda de la Diosa Bisila",
+    "content": "Descubre la historia de Mmë Bisila, la \"Gran Madre\" de la fecundidad, una de las deidades más importantes del panteón Bubi.",
+    "date": "2025-09-28",
+    "video": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "likes": 42
+  }
+]
