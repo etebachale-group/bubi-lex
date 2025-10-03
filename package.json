@@ -17,6 +17,8 @@
     "ipa:update": "node ./scripts/reconcile-ipa.js --file ./db/ipa-mapping.sample.json",
     "dict:parse-md": "node ./scripts/parse-markdown-dictionary.js",
     "dict:import-md": "node ./scripts/parse-markdown-dictionary.js ./db/dictionary.md && npm run seed:dictionary ./db/seed-dictionary.json",
+    "seed:supabase": "node ./scripts/seed-supabase.cjs ./db/seed-dictionary.json",
+    "db:apply:supabase": "echo 'Run db/schema.supabase.sql in Supabase SQL Editor'",
     "dev:setup": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-and-smoketest.ps1",
     "dev:setup:clean": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-and-smoketest.ps1 -Clean",
     "dev:setup:seed": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-and-smoketest.ps1 -SeedFile ./db/seed-dictionary.json"
@@ -26,6 +28,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.58.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",
