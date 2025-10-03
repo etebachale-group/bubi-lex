@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { z } from 'zod';
 
 const NewsSchema = z.object({
@@ -12,9 +12,16 @@ const NewsSchema = z.object({
 
 export async function GET() {
   try {
-    const rows = await query<Array<{ id: number; title: string; content: string; date: string; image: string | null; video: string | null; likes: number }>>(
-      'SELECT id, title, content, DATE_FORMAT(date, "%Y-%m-%d") as date, image, video, likes FROM news ORDER BY date DESC'
-    );
+    const { data: rows, error } = await supabase
+      .from('news')
+      .select('id, title, content, date, image, video, likes')
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('Supabase GET Error:', error);
+      throw error;
+    }
+
     return NextResponse.json(rows);
   } catch (err) {
     console.error(err);
@@ -30,7 +37,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
     const { title, content, date, image, video } = parsed.data;
-    await query('INSERT INTO news (title, content, date, image, video) VALUES (?, ?, ?, ?, ?)', [title, content, date, image ?? null, video ?? null]);
+
+    const { error } = await supabase
+      .from('news')
+      .insert([{ title, content, date, image, video }]);
+
+    if (error) {
+      console.error('Supabase POST Error:', error);
+      throw error;
+    }
+
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
     console.error(err);

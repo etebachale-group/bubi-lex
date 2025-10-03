@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import NewsView from './news-view';
 import StructuredData from '@/components/seo/structured-data';

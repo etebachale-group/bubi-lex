@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { execute } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 
@@ -27,20 +27,23 @@ export async function POST(req: Request) {
       notes: i.notes?.trim() ?? null,
     }));
 
-  const placeholders = items.map(() => '(?, ?, ?, ?)').join(',');
-  const values = items.flatMap((i) => [i.bubi, i.spanish, i.ipa, i.notes]);
+    // Supabase `insert` can handle an array of objects directly.
+    const { error, count } = await supabase.from('dictionary_entries').insert(items);
 
-    const result = await execute(
-      `INSERT INTO dictionary_entries (bubi, spanish, ipa, notes) VALUES ${placeholders}`,
-      values
-    );
+    if (error) {
+      console.error('Supabase bulk insert error:', error);
+      throw error;
+    }
 
-    try { broadcast({ kind: 'bulk-insert', count: items.length }); } catch {}
+    try {
+      broadcast({ kind: 'bulk-insert', count: items.length });
+    } catch (e) {
+      console.error('Broadcast error:', e);
+    }
 
     return NextResponse.json({
       ok: true,
-      inserted: result.affectedRows ?? items.length,
-      firstInsertId: result.insertId ?? null,
+      inserted: count ?? items.length, // `count` from Supabase is more reliable
     });
   } catch (err) {
     console.error(err);

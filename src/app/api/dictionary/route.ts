@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, execute } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 
@@ -22,43 +22,24 @@ export async function GET(req: Request) {
 
     const orderBy = lang === 'es' ? 'spanish' : 'bubi';
 
-    let rows: Array<{ id: number; bubi: string; spanish: string; ipa: string | null; notes: string | null }> = [];
-    let count = 0;
+    let query = supabase
+      .from('dictionary_entries')
+      .select('id, bubi, spanish, ipa, notes', { count: 'exact' });
 
     if (q) {
-      // Prefer FULLTEXT search when query present (fast and ranked). Use boolean mode with prefix.
-      const booleanQuery = q
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((t) => `${t.trim()}*`)
-        .join(' ');
-
-      // Rows with relevance
-      rows = await query(
-        `SELECT id, bubi, spanish, ipa, notes,
-                MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE) AS relevance
-           FROM dictionary_entries
-          WHERE MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE)
-          ORDER BY relevance DESC, ${orderBy} ASC
-          LIMIT ? OFFSET ?`,
-        [booleanQuery, booleanQuery, limit, offset]
-      );
-      // Count using same condition (approximate; MySQL can't index count relevance, but this is correct)
-      const cnt = await query<Array<{ count: number }>>(
-        `SELECT COUNT(*) AS count
-           FROM dictionary_entries
-          WHERE MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE)`,
-        [booleanQuery]
-      );
-      count = cnt[0]?.count ?? 0;
-    } else {
-      rows = await query(
-        `SELECT id, bubi, spanish, ipa, notes FROM dictionary_entries ORDER BY ${orderBy} ASC LIMIT ? OFFSET ?`,
-        [limit, offset]
-      );
-      const cnt = await query<Array<{ count: number }>>('SELECT COUNT(*) AS count FROM dictionary_entries');
-      count = cnt[0]?.count ?? 0;
+      const searchFilter = `bubi.ilike.%${q}%,spanish.ilike.%${q}%`;
+      query = query.or(searchFilter);
     }
+
+    const { data: rows, count, error } = await query
+      .order(orderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Supabase GET Error:', error);
+      throw error;
+    }
+
     return NextResponse.json({ items: rows, total: count ?? 0 });
   } catch (err) {
     console.error(err);
@@ -74,9 +55,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
     const { bubi, spanish, ipa, notes } = parsed.data;
-  const result = await execute('INSERT INTO dictionary_entries (bubi, spanish, ipa, notes) VALUES (?, ?, ?, ?)', [bubi, spanish, ipa ?? null, notes ?? null]);
-  try { broadcast({ kind: 'insert', id: result.insertId, bubi, spanish, ipa }); } catch {}
-  return NextResponse.json({ ok: true, id: result.insertId }, { status: 201 });
+
+    const { data: newEntry, error } = await supabase
+      .from('dictionary_entries')
+      .insert({ bubi, spanish, ipa, notes })
+      .select('id, bubi, spanish, ipa')
+      .single();
+
+    if (error) {
+      console.error('Supabase POST Error:', error);
+      throw error;
+    }
+
+    if (newEntry) {
+      try {
+        broadcast({ kind: 'insert', id: newEntry.id, bubi: newEntry.bubi, spanish: newEntry.spanish, ipa: newEntry.ipa });
+      } catch (e) {
+        console.error('Broadcast error', e);
+      }
+    }
+
+    return NextResponse.json({ ok: true, id: newEntry?.id }, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

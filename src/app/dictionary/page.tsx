@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import StructuredData from '@/components/seo/structured-data';
 import Breadcrumbs from '@/components/breadcrumbs';
