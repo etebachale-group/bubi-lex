@@ -12,6 +12,16 @@ const ItemSchema = z.object({
 
 const BulkSchema = z.array(ItemSchema).min(1);
 
+// Check if Supabase is configured
+async function getSupabaseAdminIfAvailable() {
+  try {
+    const { supabaseAdmin } = await import('@/lib/supabase/server');
+    return supabaseAdmin;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -27,8 +37,30 @@ export async function POST(req: Request) {
       notes: i.notes?.trim() ?? null,
     }));
 
-  const placeholders = items.map(() => '(?, ?, ?, ?)').join(',');
-  const values = items.flatMap((i) => [i.bubi, i.spanish, i.ipa, i.notes]);
+    // Try Supabase first if configured, otherwise use MySQL
+    const supabaseAdmin = await getSupabaseAdminIfAvailable();
+    if (supabaseAdmin) {
+      const { data, error } = await supabaseAdmin
+        .from('dictionary_entries')
+        .upsert(items, { onConflict: 'entry_key' })
+        .select();
+
+      if (error) {
+        throw new Error(`Supabase error: ${error.message}`);
+      }
+
+      try { broadcast({ kind: 'bulk-insert', count: items.length }); } catch {}
+
+      return NextResponse.json({
+        ok: true,
+        inserted: data?.length ?? items.length,
+        backend: 'supabase',
+      });
+    }
+
+    // Fallback to MySQL
+    const placeholders = items.map(() => '(?, ?, ?, ?)').join(',');
+    const values = items.flatMap((i) => [i.bubi, i.spanish, i.ipa, i.notes]);
 
     const result = await execute(
       `INSERT INTO dictionary_entries (bubi, spanish, ipa, notes) VALUES ${placeholders}`,
@@ -41,6 +73,7 @@ export async function POST(req: Request) {
       ok: true,
       inserted: result.affectedRows ?? items.length,
       firstInsertId: result.insertId ?? null,
+      backend: 'mysql',
     });
   } catch (err) {
     console.error(err);
