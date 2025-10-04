@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { logout } from '@/app/actions/admin';
 import { ThemeToggle } from './theme-toggle';
 import { Input } from './ui/input';
 import { Search, Menu } from 'lucide-react';
@@ -7,11 +8,9 @@ import { Button } from './ui/button';
 import AdvancedSearchModal from './advanced-search-modal';
 import { useRouter } from 'next/navigation';
 
-interface MainHeaderProps {
-  setSidebarOpen: (open: boolean) => void;
-}
+interface MainHeaderProps { setSidebarOpen: (open: boolean) => void; isAdmin: boolean }
 
-const MainHeader = ({ setSidebarOpen }: MainHeaderProps) => {
+const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
@@ -58,6 +57,12 @@ const MainHeader = ({ setSidebarOpen }: MainHeaderProps) => {
       <div className="flex items-center space-x-4">
         {/* LanguageSwitcher can be added here later */}
         <ThemeToggle />
+        {isAdmin && (
+          <form action={logout} className="flex items-center gap-2">
+            <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary font-medium">Admin</span>
+            <Button variant="outline" size="sm" type="submit">Salir</Button>
+          </form>
+        )}
       </div>
       <AdvancedSearchModal 
         isOpen={isModalOpen} 
