@@ -5,8 +5,17 @@ import StructuredData from '@/components/seo/structured-data';
 import React from 'react';
 import Breadcrumbs from '@/components/breadcrumbs';
 import { supabase } from '@/lib/db';
+import Pagination from '@/components/pagination';
 
-// ... (keep existing code until the NewsPage function)
+type SearchParams = {
+  page?: string | string[];
+  limit?: string | string[];
+};
+
+function toNumber(value: string | string[] | undefined, fallback: number) {
+  const n = Array.isArray(value) ? parseInt(value[0] ?? '') : parseInt(value ?? '');
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
 
 export default async function NewsPage({ searchParams }: { searchParams: SearchParams }) {
   const page = toNumber(searchParams.page, 1);
@@ -26,10 +35,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
 
   const total = count ?? 0;
 
-  // ... (keep existing code from itemListElement downwards)
-
-
-  const itemListElement = rows.map((item, index) => ({
+  const itemListElement = (rows ?? []).map((item, index) => ({
     '@type': 'ListItem',
     position: index + 1 + offset,
     url: `/news#${item.id}`,
@@ -62,7 +68,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
         { label: 'Inicio', href: '/' },
         { label: 'Noticias' },
       ]} />
-  <NewsView news={rows.map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
+  <NewsView news={(rows ?? []).map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
       <Pagination basePath="/news" page={page} limit={limit} total={total} />
     </>
   );
