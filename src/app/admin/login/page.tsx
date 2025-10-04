@@ -1,57 +1,39 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-async function loginAction(formData: FormData) {
-  'use server';
-  const pass = formData.get('password');
-  const next = formData.get('next') as string | null;
-  if (!pass || typeof pass !== 'string') return;
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) throw new Error('ADMIN_PASSWORD no está configurada en el entorno.');
-  if (pass === expected) {
-    cookies().set({
-      name: 'admin_session',
-      value: '1',
-      httpOnly: true,
-      path: '/',
-      maxAge: 60 * 60 * 6, // 6 horas
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    });
-    revalidatePath('/admin');
-    redirect(next && next.startsWith('/admin') ? next : '/admin');
-  }
-  // Si falla, simplemente se recarga manteniendo el campo limpio
-}
-
-export default function AdminLoginPage({ searchParams }: { searchParams: { next?: string } }) {
+export default async function AdminLoginPage({ searchParams }: { searchParams: { next?: string; error?: string } }) {
+  const session = await getServerSession(authOptions);
   const next = searchParams?.next || '/admin';
+  if (session && (session as any).isAdmin) {
+    redirect(next.startsWith('/admin') ? next : '/admin');
+  }
+  const notAuthorized = session && !(session as any).isAdmin;
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Acceso Administrador</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form action={loginAction} className="space-y-4">
-            <input type="hidden" name="next" value={next} />
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Contraseña</label>
-              <Input id="password" name="password" type="password" required autoComplete="current-password" />
-            </div>
-            <Button type="submit" className="w-full">Entrar</Button>
+        <CardContent className="space-y-4">
+          {notAuthorized && (
+            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">Tu correo no está autorizado.</div>
+          )}
+          <form action={`/api/auth/signin/google?callbackUrl=${encodeURIComponent(next)}`} method="POST" className="space-y-2">
+            <Button className="w-full" type="submit" variant="default">Entrar con Google</Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-4">Si olvidaste la contraseña, actualiza ADMIN_PASSWORD en el entorno.</p>
+          <p className="text-xs text-muted-foreground">Debes iniciar sesión con un correo autorizado.</p>
+          <p className="text-xs text-muted-foreground">¿Problemas? Contacta al administrador del sitio.</p>
+          {session && !notAuthorized && (
+            <p className="text-xs">Ya iniciaste sesión. <Link href="/admin" className="underline">Ir al panel</Link></p>
+          )}
         </CardContent>
-        <CardFooter className="justify-center text-xs text-muted-foreground">
-          BubiLex Admin
-        </CardFooter>
+        <CardFooter className="justify-center text-xs text-muted-foreground">BubiLex Admin</CardFooter>
       </Card>
     </div>
   );

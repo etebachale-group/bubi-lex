@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
-import { isAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
 const DictionarySchema = z.object({
   bubi: z.string().min(1),
@@ -35,7 +36,8 @@ export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await getServerSession(authOptions);
+  if (!(session as any)?.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const idNum = Number(params.id);
   if (!Number.isFinite(idNum) || idNum <= 0) {
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
@@ -64,7 +66,8 @@ export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const sessionDel = await getServerSession(authOptions);
+  if (!(sessionDel as any)?.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const idNum = Number(params.id);
   if (!Number.isFinite(idNum) || idNum <= 0) {
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 });

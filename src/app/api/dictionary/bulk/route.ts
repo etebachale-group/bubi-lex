@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
-import { isAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
 const ItemSchema = z.object({
   bubi: z.string().min(1),
@@ -15,7 +16,8 @@ const BulkSchema = z.array(ItemSchema).min(1);
 
 export async function POST(req: Request) {
   try {
-    if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await getServerSession(authOptions);
+  if (!(session as any)?.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const parsed = BulkSchema.safeParse(Array.isArray(body) ? body : body?.items);
     if (!parsed.success) {

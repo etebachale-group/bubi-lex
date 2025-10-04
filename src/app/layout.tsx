@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from 'next/headers';
 import { ThemeProvider } from "@/components/theme-provider";
 import MainLayout from "@/components/main-layout";
 import "./globals.css";
@@ -65,7 +64,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isAdmin = !!cookies().get('admin_session');
+  // isAdmin ahora proviene de NextAuth en server componentes específicos; aquí pasamos false y se evaluará en runtime si se requiere.
+  const isAdmin = false;
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ptSans.className} ${playfair.variable} font-body bg-background`}>
