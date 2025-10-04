@@ -49,6 +49,7 @@ function toString(value: string | string[] | undefined) {
 
 export default async function DictionaryPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = searchParams;
+  const q = toString(searchParams.q);
   const page = toNumber(searchParams.page, 1);
   const limit = toNumber(searchParams.limit, 12);
   const rawLang = toString(searchParams.lang).trim().toLowerCase();
