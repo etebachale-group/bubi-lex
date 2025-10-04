@@ -75,7 +75,7 @@ const DashboardPage = async () => {
 
         <div className="md:col-span-1">
           <WordOfTheDay />
-        }
+        </div>
       </div>
     </div>
   );
