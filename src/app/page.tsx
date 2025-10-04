@@ -1,13 +1,29 @@
 import WordOfTheDay from "@/components/word-of-the-day";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import news from '@/lib/news-data.json';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import StructuredData from "@/components/seo/structured-data";
+import { supabase } from '@/lib/db';
 
-const DashboardPage = () => {
-  const recentNews = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+export const dynamic = 'force-dynamic'; // Ensure the page is always dynamic
+
+async function getRecentNews() {
+  const { data, error } = await supabase
+    .from('news')
+    .select('id, title, date')
+    .order('date', { ascending: false })
+    .limit(3);
+
+  if (error) {
+    console.error('Error fetching recent news:', error);
+    return [];
+  }
+  return data;
+}
+
+const DashboardPage = async () => {
+  const recentNews = await getRecentNews();
 
   return (
     <div className="flex flex-col gap-8">
@@ -36,26 +52,30 @@ const DashboardPage = () => {
               <CardTitle>Noticias Recientes</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentNews.map(item => (
-                <div key={item.id} className="flex justify-between items-center">
-                  <div>
-                    <Link href={`/news#${item.id}`} className="font-semibold hover:underline">{item.title}</Link>
-                    <p className="text-sm text-muted-foreground">{new Date(item.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric' })}</p>
+              {recentNews.length > 0 ? (
+                recentNews.map(item => (
+                  <div key={item.id} className="flex justify-between items-center">
+                    <div>
+                      <Link href={`/news#${item.id}`} className="font-semibold hover:underline">{item.title}</Link>
+                      <p className="text-sm text-muted-foreground">{new Date(item.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/news#${item.id}`}>
+                        Ver <ArrowRight className="w-4 h-4 ml-2" />
+                      </Link>
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/news#${item.id}`}>
-                      Ver <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-muted-foreground">No hay noticias recientes.</p>
+              )}
             </CardContent>
           </Card>
         </div>
 
         <div className="md:col-span-1">
           <WordOfTheDay />
-        </div>
+        }
       </div>
     </div>
   );

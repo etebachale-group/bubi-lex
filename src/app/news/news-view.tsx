@@ -12,8 +12,8 @@ interface NewsItem {
   title: string;
   content: string;
   date: string;
-  image?: string;
-  video?: string;
+  image?: string | null;
+  video?: string | null;
   likes: number;
 }
 
@@ -23,23 +23,34 @@ interface NewsViewProps {
 
 const NewsView = ({ news }: NewsViewProps) => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(news);
-  const [likes, setLikes] = useState(news.map(item => item.likes));
 
   useEffect(() => {
     setNewsItems(news);
-    setLikes(news.map(item => item.likes));
   }, [news]);
 
   useEffect(() => {
     const channel = supabase
-      .channel('news-feed')
+      .channel('news-feed-delete')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'news' },
         (payload) => {
           const newNewsItem = payload.new as NewsItem;
-          setNewsItems((currentNews) => [newNewsItem, ...currentNews]);
-          setLikes((currentLikes) => [newNewsItem.likes, ...currentLikes]);
+          if (newNewsItem && newNewsItem.id) {
+            setNewsItems((currentNews) => [newNewsItem, ...currentNews]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'news' },
+        (payload) => {
+          const deletedItemId = (payload.old as Partial<NewsItem>).id;
+          if (deletedItemId) {
+            setNewsItems((currentNews) =>
+              currentNews.filter((item) => item.id !== deletedItemId)
+            );
+          }
         }
       )
       .subscribe();
@@ -50,24 +61,33 @@ const NewsView = ({ news }: NewsViewProps) => {
   }, []);
 
   const handleLike = async (index: number, id: number) => {
+    // Optimistic update
+    setNewsItems(currentNews => {
+      const next = [...currentNews];
+      next[index] = { ...next[index], likes: (next[index].likes ?? 0) + 1 };
+      return next;
+    });
+
     try {
-      setLikes((prev) => {
-        const next = [...prev];
-        next[index] = (next[index] ?? 0) + 1;
-        return next;
-      });
       const res = await fetch(`/api/news/${id}/like`, { method: 'POST' });
       if (!res.ok) throw new Error('Like failed');
       const data = await res.json();
-      setLikes((prev) => {
-        const next = [...prev];
-        next[index] = data.likes ?? next[index];
+      // Sync with server value
+      setNewsItems(currentNews => {
+        const next = [...currentNews];
+        // Check if the item still exists and is at the same index
+        if (next[index] && next[index].id === id) {
+            next[index] = { ...next[index], likes: data.likes };
+        }
         return next;
       });
-  } catch {
-      setLikes((prev) => {
-        const next = [...prev];
-        next[index] = Math.max(0, (next[index] ?? 1) - 1);
+    } catch {
+      // Revert optimistic update
+      setNewsItems(currentNews => {
+        const next = [...currentNews];
+        if (next[index] && next[index].id === id) {
+            next[index] = { ...next[index], likes: Math.max(0, (next[index].likes ?? 1) - 1) };
+        }
         return next;
       });
       alert('No se pudo registrar tu me gusta.');
@@ -125,7 +145,7 @@ const NewsView = ({ news }: NewsViewProps) => {
               <CardFooter className="flex justify-end gap-2">
                 <Button aria-label="Me gusta" variant="ghost" size="icon" onClick={() => handleLike(index, item.id)}>
                   <ThumbsUp className="w-5 h-5" />
-                  <span className="ml-2">{likes[index]}</span>
+                  <span className="ml-2">{item.likes}</span>
                 </Button>
                 <Button aria-label="Compartir" variant="ghost" size="icon" onClick={() => handleShare(item.id)}>
                   <Share2 className="w-5 h-5" />
