@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import { ThemeProvider } from "@/components/theme-provider";
 import MainLayout from "@/components/main-layout";
 import "./globals.css";
@@ -59,13 +61,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // isAdmin ahora proviene de NextAuth en server componentes específicos; aquí pasamos false y se evaluará en runtime si se requiere.
-  const isAdmin = false;
+  const session = await getServerSession(authOptions);
+  const isAdmin = !!(session as any)?.isAdmin;
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ptSans.className} ${playfair.variable} font-body bg-background`}>
