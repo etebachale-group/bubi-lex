@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { ThemeToggle } from './theme-toggle';
 import { Input } from './ui/input';
 import { Search, Menu } from 'lucide-react';
@@ -26,6 +27,10 @@ const MainHeader = ({ setSidebarOpen }: MainHeaderProps) => {
   return (
     <header className="flex items-center justify-between p-4 bg-card border-b z-10">
       <div className="flex items-center gap-4">
+        <a href="/" className="flex items-center gap-2" aria-label="Inicio BubiLex">
+          <Image src="/img/logo.png" alt="BubiLex" width={40} height={40} className="rounded-sm" priority />
+          <span className="hidden sm:inline font-headline text-lg font-semibold">BubiLex</span>
+        </a>
         <Button 
           variant="ghost" 
           size="icon" 

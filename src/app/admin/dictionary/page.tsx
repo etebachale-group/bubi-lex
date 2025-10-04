@@ -2,6 +2,7 @@ import { getSupabase } from '@/lib/db';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,18 @@ async function getEntries() {
 
 export default async function AdminDictionaryPage() {
   const rows = await getEntries();
+
+  async function deleteAction(formData: FormData) {
+    'use server';
+    const id = formData.get('id');
+    if (!id) return;
+    const supabase = getSupabase();
+    await supabase.from('dictionary_entries').delete().eq('id', Number(id));
+    // Trigger revalidation of this admin page and public dictionary listing
+    revalidatePath('/admin/dictionary');
+    revalidatePath('/dictionary');
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
@@ -47,6 +60,10 @@ export default async function AdminDictionaryPage() {
                   <Button size="sm" variant="outline" asChild>
                     <Link href={`/admin/dictionary/edit/${r.id}`}>Editar</Link>
                   </Button>
+                  <form action={deleteAction} onSubmit={(e) => { if(!confirm(`¿Eliminar "${r.bubi}"?`)) e.preventDefault(); }}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <Button size="sm" variant="destructive" type="submit">Eliminar</Button>
+                  </form>
                 </div>
               </CardContent>
             </Card>

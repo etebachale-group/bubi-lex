@@ -45,6 +45,18 @@ export const metadata: Metadata = {
     title: "BubiLex - Diccionario Bubi-Español",
     description: "Diccionario Bubi-Español y Archivo Cultural",
   },
+  icons: {
+    icon: [
+      { url: '/img/logo.png', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    apple: [
+      { url: '/img/logo.png', type: 'image/png' },
+    ],
+    shortcut: [
+      { url: '/img/logo.png', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({

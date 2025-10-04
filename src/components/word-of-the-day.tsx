@@ -46,19 +46,46 @@ const WordOfTheDay = () => {
   const timerRef = useRef<number | null>(null);
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
 
+  const lastRandomIdRef = useRef<number | null>(null);
   const fetchWord = useCallback(async (mode: "daily" | "random") => {
-    setError(null);
-    setEntry(null);
     try {
-      const res = await fetch(`/api/dictionary/random?mode=${mode}`, { cache: 'no-store' });
+      const controller = new AbortController();
+      const res = await fetch(`/api/dictionary/random?mode=${mode}&t=${Date.now()}`,
+        { cache: 'no-store', signal: controller.signal, headers: { 'Accept': 'application/json' } });
       const data = await res.json();
-
-      if (!res.ok || data.error) {
-        setError(data.error || `Error: ${res.status} ${res.statusText}`);
-      } else {
-        setEntry(data);
-        setExamples([]);
+      if (!res.ok || data?.error) {
+        if (mode === 'daily') {
+          // fallback a random
+            const rf = await fetch(`/api/dictionary/random?mode=random&t=${Date.now()}`, { cache: 'no-store' });
+            const rj = await rf.json();
+            if (rf.ok && !rj.error) {
+              setEntry(rj);
+              setExamples([]);
+              setError(null);
+              return;
+            }
+        }
+        setError(data?.error || `Error: ${res.status} ${res.statusText}`);
+        return;
       }
+      if (mode === 'random' && lastRandomIdRef.current && lastRandomIdRef.current === data.id) {
+        // intentar otra
+        const second = await fetch(`/api/dictionary/random?mode=random&t=${Date.now()+1}`, { cache: 'no-store' });
+        if (second.ok) {
+          const sj = await second.json();
+          if (!sj.error && sj.id !== data.id) {
+            setEntry(sj);
+            setExamples([]);
+            setError(null);
+            lastRandomIdRef.current = sj.id;
+            return;
+          }
+        }
+      }
+      setEntry(data);
+      setExamples([]);
+      setError(null);
+      if (mode === 'random') lastRandomIdRef.current = data.id;
     } catch (e: any) {
       setError(`Fallo al contactar la API: ${e.message}`);
     }
@@ -66,7 +93,7 @@ const WordOfTheDay = () => {
 
   useEffect(() => {
     // Al montar: palabra del día determinística
-    fetchWord("daily");
+  fetchWord("daily");
     // Rotación aleatoria cada 5 minutos
     const id = window.setInterval(() => fetchWord("random"), FIVE_MIN);
     timerRef.current = id as unknown as number;

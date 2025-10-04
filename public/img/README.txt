@@ -1,0 +1,1 @@
+Coloca aqui el archivo logo.png (no se incluye en el repositorio por ahora). Asegúrate de que sea un PNG cuadrado idealmente 512x512 para mejor calidad de favicon y Apple touch.

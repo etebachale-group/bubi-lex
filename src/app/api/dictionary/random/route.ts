@@ -18,7 +18,7 @@ export async function GET(req: Request) {
       return NextResponse.json(data || null);
     }
 
-    // daily deterministic pick
+    // daily deterministic pick (stable hash of YYYY-MM-DD to spread selection)
     const { count, error: countError } = await supabase
       .from('dictionary_entries')
       .select('*', { count: 'exact', head: true });
@@ -31,10 +31,17 @@ export async function GET(req: Request) {
     }
 
     const now = new Date();
-    const start = new Date(Date.UTC(now.getUTCFullYear(), 0, 0));
-    const diff = Number(now) - Number(start);
-    const day = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const offset = day % count;
+    const y = now.getUTCFullYear();
+    const m = now.getUTCMonth() + 1; // 1-12
+    const d = now.getUTCDate();
+    const key = `${y}-${m}-${d}`;
+    // Simple FNV-1a like hash for string date
+    let hash = 2166136261;
+    for (let i = 0; i < key.length; i++) {
+      hash ^= key.charCodeAt(i);
+      hash = (hash * 16777619) >>> 0;
+    }
+    const offset = hash % count;
 
     const { data, error: fetchError } = await supabase
       .from('dictionary_entries')
