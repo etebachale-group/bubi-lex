@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 // TODO: Add authentication to protect this route
 
@@ -20,6 +20,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Título, contenido y fecha son requeridos' }, { status: 400 });
     }
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('news')
       .update({
@@ -56,6 +57,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
     }
 
+    const supabase = getSupabase();
     const { error } = await supabase
       .from('news')
       .delete()

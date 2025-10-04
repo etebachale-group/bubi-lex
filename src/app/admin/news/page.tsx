@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import NewsAdminView from './news-admin-view';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 export const dynamic = 'force-dynamic';
 
 async function getNews() {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('news')
     .select('id, title, date')

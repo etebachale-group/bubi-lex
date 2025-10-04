@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, Share2 } from 'lucide-react';
 import Image from 'next/image';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
+import { toYouTubeEmbedUrl } from '@/lib/utils';
+import YouTubeEmbed from '@/components/youtube-embed';
 
 interface NewsItem {
   id: number;
@@ -29,7 +31,8 @@ const NewsView = ({ news }: NewsViewProps) => {
   }, [news]);
 
   useEffect(() => {
-    const channel = supabase
+  const supabase = getSupabase();
+  const channel = supabase
       .channel('news-feed-delete')
       .on(
         'postgres_changes',
@@ -56,7 +59,7 @@ const NewsView = ({ news }: NewsViewProps) => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+  supabase.removeChannel(channel);
     };
   }, []);
 
@@ -129,15 +132,11 @@ const NewsView = ({ news }: NewsViewProps) => {
                   item.video.startsWith('/uploads/') ? (
                     <video controls className="w-full mb-4 rounded-lg" src={item.video} />
                   ) : (
-                    <div className="relative w-full aspect-video mb-4">
-                      <iframe
-                        src={item.video}
-                        title={item.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="absolute inset-0 w-full h-full rounded-lg"
-                      ></iframe>
-                    </div>
+                    <YouTubeEmbed
+                      url={toYouTubeEmbedUrl(item.video) || item.video}
+                      title={item.title}
+                      className="mb-4"
+                    />
                   )
                 )}
                 <p className="text-muted-foreground">{item.content}</p>

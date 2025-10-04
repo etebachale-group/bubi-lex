@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 
@@ -22,6 +22,7 @@ export async function GET(req: Request) {
 
     const orderBy = lang === 'es' ? 'spanish' : 'bubi';
 
+    const supabase = getSupabase();
     let query = supabase
       .from('dictionary_entries')
       .select('id, bubi, spanish, ipa, notes', { count: 'exact' });
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
     }
     const { bubi, spanish, ipa, notes } = parsed.data;
 
+    const supabase = getSupabase();
     const { data: newEntry, error } = await supabase
       .from('dictionary_entries')
       .insert({ bubi, spanish, ipa, notes })

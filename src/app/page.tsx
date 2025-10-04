@@ -4,11 +4,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import StructuredData from "@/components/seo/structured-data";
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 export const dynamic = 'force-dynamic'; // Ensure the page is always dynamic
 
 async function getRecentNews() {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('news')
     .select('id, title, date')

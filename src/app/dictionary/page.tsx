@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import StructuredData from '@/components/seo/structured-data';
 import Breadcrumbs from '@/components/breadcrumbs';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import Link from 'next/link';
 import DictionaryRealtime from './dictionary-realtime';
 
@@ -61,6 +61,7 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
   let rows: DictionaryRow[] = [];
   let total = 0;
 
+  const supabase = getSupabase();
   if (q) {
     // Usar RPC para búsqueda full-text
     const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });

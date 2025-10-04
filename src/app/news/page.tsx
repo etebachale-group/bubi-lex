@@ -4,7 +4,7 @@ import NewsView from './news-view';
 import StructuredData from '@/components/seo/structured-data';
 import React from 'react';
 import Breadcrumbs from '@/components/breadcrumbs';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import Pagination from '@/components/pagination';
 
 type SearchParams = {
@@ -22,6 +22,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
   const limit = toNumber(searchParams.limit, 5);
   const offset = (page - 1) * limit;
 
+  const supabase = getSupabase();
   const { data: rows, count, error } = await supabase
     .from('news')
     .select('id, title, content, date, image, video, likes', { count: 'exact' })

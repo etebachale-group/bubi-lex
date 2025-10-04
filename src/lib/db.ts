@@ -1,16 +1,25 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+let supabaseSingleton: SupabaseClient | null = null;
 
-console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl);
-console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey);
+function buildClient(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
+  if (!url || !anon) {
+    // No lanzamos inmediatamente durante build estático; devolvemos un proxy que fallará perezosamente.
+    throw new Error('Supabase env vars missing: define NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+  return createClient(url, anon);
 }
-if (!supabaseAnonKey) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
+
+export function getSupabase(): SupabaseClient {
+  if (!supabaseSingleton) {
+    supabaseSingleton = buildClient();
+  }
+  return supabaseSingleton;
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Compatibilidad con importaciones existentes
+// Nota: ya no exportamos una instancia directa para evitar fallos en tiempo de build
+// Usa: const supabase = getSupabase(); dentro de funciones/handlers.

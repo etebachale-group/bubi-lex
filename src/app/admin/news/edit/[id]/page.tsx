@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import NewsEditForm from './news-edit-form';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,7 @@ async function getNewsItem(id: string) {
     return null;
   }
 
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('news')
     .select('*')

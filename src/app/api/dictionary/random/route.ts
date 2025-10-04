@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 type Row = { id: number; bubi: string; spanish: string; ipa: string | null; notes: string | null };
 
@@ -9,6 +9,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const mode = (searchParams.get('mode') || 'daily').toLowerCase();
 
+    const supabase = getSupabase();
     if (mode === 'random') {
       const { data, error } = await supabase.rpc('get_random_dictionary_entry').single();
       if (error) {

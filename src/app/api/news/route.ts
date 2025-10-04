@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 // TODO: Add authentication to protect this route
 
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Título, contenido y fecha son requeridos' }, { status: 400 });
     }
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('news')
       .insert([

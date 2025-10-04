@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 
@@ -28,7 +28,8 @@ export async function POST(req: Request) {
     }));
 
     // Supabase `insert` can handle an array of objects directly.
-    const { error, count } = await supabase.from('dictionary_entries').insert(items);
+  const supabase = getSupabase();
+  const { error, count } = await supabase.from('dictionary_entries').insert(items);
 
     if (error) {
       console.error('Supabase bulk insert error:', error);

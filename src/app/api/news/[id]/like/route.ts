@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 // Incrementa el contador de "likes" para una noticia determinada
 export async function POST(
@@ -13,6 +13,7 @@ export async function POST(
     }
 
     // Llama a la función de la base de datos para incrementar los likes
+    const supabase = getSupabase();
     const { data: rpcData, error } = await supabase
       .rpc('increment_likes', { news_id: idNum })
       .single();
