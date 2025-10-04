@@ -41,16 +41,26 @@ const FIVE_MIN = 5 * 60 * 1000;
 
 const WordOfTheDay = () => {
   const [entry, setEntry] = useState<DictEntry | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [examples, setExamples] = useState<string[]>([]);
   const timerRef = useRef<number | null>(null);
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   const fetchWord = useCallback(async (mode: "daily" | "random") => {
-    const res = await fetch(`/api/dictionary/random?mode=${mode}`, { cache: 'no-store' });
-    if (res.ok) {
+    setError(null);
+    setEntry(null);
+    try {
+      const res = await fetch(`/api/dictionary/random?mode=${mode}`, { cache: 'no-store' });
       const data = await res.json();
-      setEntry(data);
-      setExamples([]); // reset ejemplos al cambiar palabra
+
+      if (!res.ok || data.error) {
+        setError(data.error || `Error: ${res.status} ${res.statusText}`);
+      } else {
+        setEntry(data);
+        setExamples([]);
+      }
+    } catch (e: any) {
+      setError(`Fallo al contactar la API: ${e.message}`);
     }
   }, []);
 
@@ -112,7 +122,12 @@ const WordOfTheDay = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {entry ? (
+        {error ? (
+          <div className="text-red-500 bg-red-50 p-3 rounded-md">
+            <div className="font-bold">Error al cargar la palabra:</div>
+            <pre className="text-xs whitespace-pre-wrap">{error}</pre>
+          </div>
+        ) : entry ? (
           <>
             <div className="text-4xl font-bold font-headline text-primary">{entry.bubi}</div>
             <div className="text-xl text-muted-foreground mt-2">{entry.spanish}</div>

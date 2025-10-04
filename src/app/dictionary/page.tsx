@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import StructuredData from '@/components/seo/structured-data';
 import Breadcrumbs from '@/components/breadcrumbs';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import Link from 'next/link';
 import DictionaryRealtime from './dictionary-realtime';
 
@@ -47,12 +47,11 @@ function toString(value: string | string[] | undefined) {
   return Array.isArray(value) ? (value[0] ?? '') : (value ?? '');
 }
 
-export default async function DictionaryPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const sp = await searchParams;
-  const q = toString(sp.q).trim();
-  const page = toNumber(sp.page, 1);
-  const limit = toNumber(sp.limit, 12);
-  const rawLang = toString(sp.lang).trim().toLowerCase();
+export default async function DictionaryPage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = searchParams;
+  const page = toNumber(searchParams.page, 1);
+  const limit = toNumber(searchParams.limit, 12);
+  const rawLang = toString(searchParams.lang).trim().toLowerCase();
   const lang: 'bubi' | 'es' = rawLang === 'es' ? 'es' : 'bubi';
   const offset = (page - 1) * limit;
 
@@ -60,33 +59,30 @@ export default async function DictionaryPage({ searchParams }: { searchParams: P
 
   let rows: DictionaryRow[] = [];
   let total = 0;
+
   if (q) {
-    const booleanQuery = q
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((t) => `${t.trim()}*`)
-      .join(' ');
-    rows = await query<DictionaryRow[]>(
-      `SELECT id, bubi, spanish, ipa, notes,
-              MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE) AS relevance
-         FROM dictionary_entries
-        WHERE MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE)
-        ORDER BY relevance DESC, ${orderBy} ASC
-        LIMIT ? OFFSET ?`,
-      [booleanQuery, booleanQuery, limit, offset]
-    );
-    const cnt = await query<Array<{ count: number }>>(
-      `SELECT COUNT(*) AS count FROM dictionary_entries WHERE MATCH(bubi, spanish) AGAINST (? IN BOOLEAN MODE)`,
-      [booleanQuery]
-    );
-    total = cnt[0]?.count ?? 0;
+    // Usar RPC para búsqueda full-text
+    const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
+    if (error) {
+      console.error('Supabase RPC search_dictionary_entries Error:', error);
+    } else {
+      rows = data || [];
+      total = data?.length || 0; // Nota: RPC no devuelve total, así que esto es una aproximación
+    }
   } else {
-    rows = await query<DictionaryRow[]>(
-      `SELECT id, bubi, spanish, ipa, notes FROM dictionary_entries ORDER BY ${orderBy} ASC LIMIT ? OFFSET ?`,
-      [limit, offset]
-    );
-    const cnt = await query<Array<{ count: number }>>('SELECT COUNT(*) AS count FROM dictionary_entries');
-    total = cnt[0]?.count ?? 0;
+    // Query normal para listar todo
+    const { data, count, error } = await supabase
+      .from('dictionary_entries')
+      .select('id, bubi, spanish, ipa, notes', { count: 'exact' })
+      .order(orderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Supabase select Error:', error);
+    } else {
+      rows = data || [];
+      total = count ?? 0;
+    }
   }
 
   const jsonLd = {

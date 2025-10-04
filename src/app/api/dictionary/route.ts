@@ -27,8 +27,12 @@ export async function GET(req: Request) {
       .select('id, bubi, spanish, ipa, notes', { count: 'exact' });
 
     if (q) {
-      const searchFilter = `bubi.ilike.%${q}%,spanish.ilike.%${q}%`;
-      query = query.or(searchFilter);
+      const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
+      if (error) {
+        console.error('Supabase RPC search_dictionary_entries Error:', error);
+        throw error;
+      }
+      return NextResponse.json({ items: data, total: data?.length || 0 });
     }
 
     const { data: rows, count, error } = await query

@@ -4,61 +4,30 @@ import NewsView from './news-view';
 import StructuredData from '@/components/seo/structured-data';
 import React from 'react';
 import Breadcrumbs from '@/components/breadcrumbs';
-import { query } from '@/lib/db';
-import Pagination from '@/components/pagination';
+import { supabase } from '@/lib/db';
 
-export const metadata: Metadata = {
-  title: 'Noticias y Relatos | BubiLex',
-  description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
-  keywords: ['Noticias Bubi', 'Relatos Bubi', 'Cultura Bubi', 'BubiLex'],
-  alternates: {
-    canonical: '/news',
-  },
-  openGraph: {
-    title: 'Noticias y Relatos | BubiLex',
-    description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
-  },
-  twitter: {
-    title: 'Noticias y Relatos | BubiLex',
-    description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
-  },
-};
-
-type SearchParams = {
-  page?: string | string[];
-  limit?: string | string[];
-};
-
-interface NewsRow {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-  image: string | null;
-  video: string | null;
-  likes: number;
-}
-
-function toNumber(value: string | string[] | undefined, fallback: number) {
-  const n = Array.isArray(value) ? parseInt(value[0] ?? '') : parseInt(value ?? '');
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
+// ... (keep existing code until the NewsPage function)
 
 export default async function NewsPage({ searchParams }: { searchParams: SearchParams }) {
   const page = toNumber(searchParams.page, 1);
   const limit = toNumber(searchParams.limit, 5);
   const offset = (page - 1) * limit;
 
-  const rows = await query<NewsRow[]>(
-    'SELECT id, title, content, DATE_FORMAT(date, "%Y-%m-%d") as date, image, video, likes FROM news ORDER BY date DESC LIMIT ? OFFSET ?',
-    [limit, offset]
-  );
+  const { data: rows, count, error } = await supabase
+    .from('news')
+    .select('id, title, content, date, image, video, likes', { count: 'exact' })
+    .order('date', { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const countRows = await query<Array<{ count: number }>>(
-    'SELECT COUNT(*) as count FROM news',
-    []
-  );
-  const total = countRows[0]?.count ?? 0;
+  if (error) {
+    console.error('Supabase select Error:', error);
+    // Handle error appropriately, maybe show an error message
+  }
+
+  const total = count ?? 0;
+
+  // ... (keep existing code from itemListElement downwards)
+
 
   const itemListElement = rows.map((item, index) => ({
     '@type': 'ListItem',
