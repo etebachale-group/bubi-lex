@@ -4,6 +4,7 @@ import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { recordAdminAudit } from '@/lib/audit-log';
 
 const DictionarySchema = z.object({
   bubi: z.string().min(1),
@@ -83,6 +84,14 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error('Broadcast error', e);
       }
+      try {
+        recordAdminAudit({
+          actorEmail: (session as any)?.user?.email || null,
+          action: 'dictionary.create',
+          target: newEntry.id,
+          meta: { bubi: newEntry.bubi, spanish: newEntry.spanish }
+        });
+      } catch {}
     }
 
     return NextResponse.json({ ok: true, id: newEntry?.id }, { status: 201 });

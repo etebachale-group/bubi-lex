@@ -4,6 +4,7 @@ import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { recordAdminAudit } from '@/lib/audit-log';
 
 const DictionarySchema = z.object({
   bubi: z.string().min(1),
@@ -59,6 +60,14 @@ export async function PUT(
     return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
   }
   try { broadcast({ kind: 'update', id: data.id }); } catch {}
+  try {
+    recordAdminAudit({
+      actorEmail: (session as any)?.user?.email || null,
+      action: 'dictionary.update',
+      target: data.id,
+      meta: { bubi, spanish }
+    });
+  } catch {}
   return NextResponse.json(data);
 }
 
@@ -81,5 +90,12 @@ export async function DELETE(
     return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 });
   }
   try { broadcast({ kind: 'delete', id: idNum }); } catch {}
+  try {
+    recordAdminAudit({
+      actorEmail: (sessionDel as any)?.user?.email || null,
+      action: 'dictionary.delete',
+      target: idNum
+    });
+  } catch {}
   return NextResponse.json({ ok: true });
 }

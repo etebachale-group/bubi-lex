@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { SignOutButton } from './signout-button';
@@ -7,12 +8,16 @@ import { Search, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import AdvancedSearchModal from './advanced-search-modal';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface MainHeaderProps { setSidebarOpen: (open: boolean) => void; isAdmin: boolean }
 
 const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  const sessionResult = useSession?.();
+  const session = sessionResult?.data;
+  const user = session?.user;
 
   const handleAdvancedSearch = (criteria: { keyword: string; category: string; dateRange: string }) => {
     // Por ahora usamos solo la palabra clave para el diccionario; se puede ampliar a filtros adicionales
@@ -58,8 +63,21 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
         {/* LanguageSwitcher can be added here later */}
         <ThemeToggle />
         {isAdmin && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary font-medium">Admin</span>
+          <div className="flex items-center gap-3">
+            <a href="/admin/audit" className="text-xs underline text-muted-foreground hover:text-primary hidden sm:inline" aria-label="Ver audit logs">Logs</a>
+            {user?.image && (
+              <Image
+                src={user.image}
+                alt={user.name || user.email || 'Avatar'}
+                width={32}
+                height={32}
+                className="rounded-full border border-border"
+              />
+            )}
+            <div className="flex flex-col leading-tight max-w-[140px] truncate">
+              <span className="text-xs font-semibold text-primary">Admin</span>
+              {user?.email && <span className="text-xs text-muted-foreground truncate" title={user.email}>{user.email}</span>}
+            </div>
             <SignOutButton />
           </div>
         )}

@@ -4,6 +4,7 @@ import { broadcast } from '@/lib/dictionary-events';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { recordAdminAudit } from '@/lib/audit-log';
 
 const ItemSchema = z.object({
   bubi: z.string().min(1),
@@ -40,11 +41,15 @@ export async function POST(req: Request) {
       throw error;
     }
 
+    try { broadcast({ kind: 'bulk-insert', count: items.length }); } catch (e) { console.error('Broadcast error:', e); }
     try {
-      broadcast({ kind: 'bulk-insert', count: items.length });
-    } catch (e) {
-      console.error('Broadcast error:', e);
-    }
+      recordAdminAudit({
+        actorEmail: (session as any)?.user?.email || null,
+        action: 'dictionary.bulk-insert',
+        target: null,
+        meta: { count: items.length }
+      });
+    } catch {}
 
     return NextResponse.json({
       ok: true,

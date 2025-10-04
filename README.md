@@ -34,3 +34,46 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## Project Specific Configuration
+
+### Environment Variables
+
+Create a `.env.local` (never commit real secrets) based on `.env.example`.
+
+Key variables:
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (public) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth credentials for Google Login |
+| `NEXTAUTH_SECRET` | Secret for signing NextAuth JWT / CSRF tokens |
+| `ADMIN_GOOGLE_EMAILS` | Comma-separated allowlist of admin emails (empty = everyone with Google login is admin) |
+| `ENABLE_AUDIT_LOG` | When `true` enables in-memory admin action audit log |
+
+### Admin & Authentication
+
+Authentication is implemented with **NextAuth (Google Provider)**. Admin access is restricted by email allowlist (`ADMIN_GOOGLE_EMAILS`).
+
+Protected routes live under `/admin`. Middleware checks a JWT session (strategy = `jwt`).
+
+### Audit Log (Experimental)
+
+If `ENABLE_AUDIT_LOG=true`, each dictionary mutation (create, update, delete, bulk insert) is recorded in an in-memory buffer (max 500 entries). Entries include timestamp, actor email, action, target id and meta.
+
+You can view recent entries at: `/admin/audit` (must be logged in as admin). The API endpoint backing it is `GET /api/admin/audit?limit=50`.
+
+This storage is volatile (resets on redeploy). For persistence, replace `recordAdminAudit` in `src/lib/audit-log.ts` with inserts into a database table (e.g., `admin_audit_log`).
+
+### Realtime Dictionary Events
+
+Server-Sent Events endpoint: `/api/dictionary/events` broadcasts insert/update/delete/bulk-insert events consumed by the dictionary UI for realtime updates.
+
+### Word of the Day
+
+Deterministic selection based on date hashing with fallback to random and avoidance of consecutive duplicates.
+
+---
