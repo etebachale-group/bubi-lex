@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, Share2 } from 'lucide-react';
 import Image from 'next/image';
+import { supabase } from '@/lib/db';
 
 interface NewsItem {
   id: number;
@@ -21,11 +22,35 @@ interface NewsViewProps {
 }
 
 const NewsView = ({ news }: NewsViewProps) => {
+  const [newsItems, setNewsItems] = useState<NewsItem[]>(news);
   const [likes, setLikes] = useState(news.map(item => item.likes));
+
+  useEffect(() => {
+    setNewsItems(news);
+    setLikes(news.map(item => item.likes));
+  }, [news]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('news-feed')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'news' },
+        (payload) => {
+          const newNewsItem = payload.new as NewsItem;
+          setNewsItems((currentNews) => [newNewsItem, ...currentNews]);
+          setLikes((currentLikes) => [newNewsItem.likes, ...currentLikes]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleLike = async (index: number, id: number) => {
     try {
-      // Optimistic update
       setLikes((prev) => {
         const next = [...prev];
         next[index] = (next[index] ?? 0) + 1;
@@ -34,14 +59,12 @@ const NewsView = ({ news }: NewsViewProps) => {
       const res = await fetch(`/api/news/${id}/like`, { method: 'POST' });
       if (!res.ok) throw new Error('Like failed');
       const data = await res.json();
-      // Sync with server value
       setLikes((prev) => {
         const next = [...prev];
         next[index] = data.likes ?? next[index];
         return next;
       });
   } catch {
-      // Revert optimistic update on error
       setLikes((prev) => {
         const next = [...prev];
         next[index] = Math.max(0, (next[index] ?? 1) - 1);
@@ -61,7 +84,7 @@ const NewsView = ({ news }: NewsViewProps) => {
     <div className="flex flex-col gap-8">
       <h1 className="text-3xl font-bold font-headline">Noticias y Relatos</h1>
       <div className="space-y-6">
-        {news.map((item, index) => (
+        {newsItems.map((item, index) => (
           <article key={item.id} id={String(item.id)}>
             <Card>
               <CardHeader>
