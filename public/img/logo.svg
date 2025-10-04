@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="BubiLex Logo">
+  <rect width="512" height="512" rx="56" fill="#1e1e2f"/>
+  <circle cx="256" cy="256" r="188" fill="#2563eb" opacity="0.18"/>
+  <path d="M168 140h96c56 0 92 30 92 76 0 34-18 58-50 69l54 87h-60l-48-79h-30v79h-54V140zm94 104c28 0 44-11 44-32s-16-30-44-30h-40v62h40z" fill="#fff"/>
+  <text x="256" y="470" text-anchor="middle" font-family="'PT Sans', Arial, sans-serif" font-size="72" fill="#fff" font-weight="700">β</text>
+</svg>

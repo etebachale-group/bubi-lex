@@ -32,7 +32,7 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
     <header className="flex items-center justify-between p-4 bg-card border-b z-10">
       <div className="flex items-center gap-4">
         <a href="/" className="flex items-center gap-2" aria-label="Inicio BubiLex">
-          <Image src="/img/logo.png" alt="BubiLex" width={40} height={40} className="rounded-sm" priority />
+          <Image src="/img/logo.svg" alt="BubiLex" width={40} height={40} className="rounded-sm" priority />
           <span className="hidden sm:inline font-headline text-lg font-semibold">BubiLex</span>
         </a>
         <Button 

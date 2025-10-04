@@ -49,14 +49,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/img/logo.png', type: 'image/png' },
+      { url: '/img/logo.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico' },
     ],
     apple: [
-      { url: '/img/logo.png', type: 'image/png' },
+      { url: '/img/logo.svg', type: 'image/svg+xml' },
     ],
     shortcut: [
-      { url: '/img/logo.png', type: 'image/png' },
+      { url: '/img/logo.svg', type: 'image/svg+xml' },
     ],
   },
 };
@@ -66,8 +66,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
-  const isAdmin = !!(session as any)?.isAdmin;
+  let isAdmin = false;
+  const hasAuthEnv = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.NEXTAUTH_SECRET);
+  if (hasAuthEnv) {
+    try {
+      const session = await getServerSession(authOptions);
+      isAdmin = !!(session as any)?.isAdmin;
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.warn('[layout] getServerSession falló, continuando sin sesión:', (e as Error).message);
+      }
+    }
+  }
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ptSans.className} ${playfair.variable} font-body bg-background`}>
