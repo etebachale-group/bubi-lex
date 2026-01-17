@@ -2,11 +2,11 @@ import WordOfTheDay from "@/components/word-of-the-day";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Newspaper, Sparkles } from "lucide-react";
 import StructuredData from "@/components/seo/structured-data";
 import { getSupabase } from '@/lib/db';
 
-export const dynamic = 'force-dynamic'; // Ensure the page is always dynamic
+export const dynamic = 'force-dynamic';
 
 async function getRecentNews() {
   const supabase = getSupabase();
@@ -27,7 +27,7 @@ const DashboardPage = async () => {
   const recentNews = await getRecentNews();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 animate-fade-in">
       <StructuredData data={{
         '@context': 'https://schema.org',
         '@type': 'WebSite',
@@ -39,44 +39,104 @@ const DashboardPage = async () => {
           'query-input': 'required name=search_term_string',
         },
       }} />
-      <div>
-        <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Bienvenido a BubiLex. Aquí tienes un resumen y la palabra del día.
-        </p>
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 p-8 md:p-12 text-white shadow-2xl">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-6 h-6 animate-pulse" />
+            <span className="text-sm font-semibold uppercase tracking-wider">Bienvenido a</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4">
+            BubiLex
+          </h1>
+          <p className="text-lg md:text-xl text-white/90 max-w-2xl mb-6">
+            Explora el diccionario Bubi-Español y sumérgete en la riqueza cultural del pueblo Bubi
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Button asChild size="lg" className="bg-white text-purple-600 hover:bg-white/90">
+              <Link href="/dictionary">
+                <BookOpen className="w-5 h-5 mr-2" />
+                Explorar Diccionario
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+              <Link href="/news">
+                <Newspaper className="w-5 h-5 mr-2" />
+                Ver Noticias
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -left-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <Card>
+        <div className="md:col-span-2 animate-fade-in-up">
+          <Card className="border-2">
             <CardHeader>
-              <CardTitle>Noticias Recientes</CardTitle>
+              <div className="flex items-center gap-2">
+                <Newspaper className="w-6 h-6 text-primary" />
+                <CardTitle className="text-2xl">Noticias Recientes</CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {recentNews.length > 0 ? (
-                recentNews.map(item => (
-                  <div key={item.id} className="flex justify-between items-center">
-                    <div>
-                      <Link href={`/news#${item.id}`} className="font-semibold hover:underline">{item.title}</Link>
-                      <p className="text-sm text-muted-foreground">{new Date(item.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric' })}</p>
+                recentNews.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="flex justify-between items-center p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 hover:shadow-md transition-all duration-300"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex-1">
+                      <Link href={`/news#${item.id}`} className="font-semibold text-lg hover:text-primary transition-colors">
+                        {item.title}
+                      </Link>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {new Date(item.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="ghost" size="sm" asChild className="ml-4">
                       <Link href={`/news#${item.id}`}>
-                        Ver <ArrowRight className="w-4 h-4 ml-2" />
+                        <ArrowRight className="w-4 h-4" />
                       </Link>
                     </Button>
                   </div>
                 ))
               ) : (
-                <p className="text-muted-foreground">No hay noticias recientes.</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Newspaper className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No hay noticias recientes.</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
           <WordOfTheDay />
         </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+        <Card className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 border-purple-200 dark:border-purple-800">
+          <BookOpen className="w-12 h-12 mx-auto mb-3 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">1000+</h3>
+          <p className="text-sm text-muted-foreground">Palabras en el diccionario</p>
+        </Card>
+        <Card className="text-center p-6 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950/30 dark:to-pink-900/30 border-pink-200 dark:border-pink-800">
+          <Newspaper className="w-12 h-12 mx-auto mb-3 text-pink-600 dark:text-pink-400" />
+          <h3 className="text-3xl font-bold text-pink-600 dark:text-pink-400 mb-1">50+</h3>
+          <p className="text-sm text-muted-foreground">Noticias y relatos</p>
+        </Card>
+        <Card className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
+          <Sparkles className="w-12 h-12 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">Diario</h3>
+          <p className="text-sm text-muted-foreground">Palabra del día</p>
+        </Card>
       </div>
     </div>
   );

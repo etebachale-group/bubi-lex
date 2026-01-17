@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { SignOutButton } from './signout-button';
 import { ThemeToggle } from './theme-toggle';
 import { Input } from './ui/input';
-import { Search, Menu } from 'lucide-react';
+import { Search, Menu, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import AdvancedSearchModal from './advanced-search-modal';
 import { useRouter } from 'next/navigation';
@@ -20,20 +20,30 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
   const user = session?.user;
 
   const handleAdvancedSearch = (criteria: { keyword: string; category: string; dateRange: string }) => {
-    // Por ahora usamos solo la palabra clave para el diccionario; se puede ampliar a filtros adicionales
     const sp = new URLSearchParams();
     if (criteria.keyword) sp.set('q', criteria.keyword);
-    // Reinicia a la primera página y usa orden por defecto
     sp.set('page', '1');
     router.push(`/dictionary?${sp.toString()}`);
   };
 
   return (
-    <header className="flex items-center justify-between p-4 bg-card border-b z-10">
+    <header className="sticky top-0 z-50 flex items-center justify-between p-4 glass-card border-b backdrop-blur-xl">
       <div className="flex items-center gap-4">
-        <a href="/" className="flex items-center gap-2" aria-label="Inicio BubiLex">
-          <Image src="/img/logo.svg" alt="BubiLex" width={40} height={40} className="rounded-sm" priority />
-          <span className="hidden sm:inline font-headline text-lg font-semibold">BubiLex</span>
+        <a href="/" className="flex items-center gap-2 group" aria-label="Inicio BubiLex">
+          <div className="relative">
+            <Image 
+              src="/img/logo.svg" 
+              alt="BubiLex" 
+              width={40} 
+              height={40} 
+              className="rounded-lg transition-transform group-hover:scale-110" 
+              priority 
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </div>
+          <span className="hidden sm:inline font-headline text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+            BubiLex
+          </span>
         </a>
         <Button 
           variant="ghost" 
@@ -44,39 +54,64 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
           <Menu className="w-6 h-6" />
           <span className="sr-only">Abrir menú</span>
         </Button>
-        <form role="search" className="relative hidden sm:flex items-center" action="/dictionary" method="get" aria-label="Buscar en BubiLex">
+        <form 
+          role="search" 
+          className="relative hidden sm:flex items-center" 
+          action="/dictionary" 
+          method="get" 
+          aria-label="Buscar en BubiLex"
+        >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-          <Input name="q" placeholder="Buscar palabras o noticias..." aria-label="Buscar" className="pl-10" />
+          <Input 
+            name="q" 
+            placeholder="Buscar palabras..." 
+            aria-label="Buscar" 
+            className="pl-10 w-64 lg:w-80 bg-background/50 backdrop-blur-sm border-2 focus:border-primary transition-all" 
+          />
           <Button 
             type="button"
             variant="ghost" 
             size="icon" 
-            className="ml-2"
+            className="ml-2 hover:bg-purple-100 dark:hover:bg-purple-900/30"
             onClick={() => setIsModalOpen(true)}
           >
-            <Search className="w-5 h-5" />
+            <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <span className="sr-only">Búsqueda Avanzada</span>
           </Button>
         </form>
       </div>
-      <div className="flex items-center space-x-4">
-        {/* LanguageSwitcher can be added here later */}
+      <div className="flex items-center space-x-3">
         <ThemeToggle />
         {isAdmin && (
-          <div className="flex items-center gap-3">
-            <a href="/admin/audit" className="text-xs underline text-muted-foreground hover:text-primary hidden sm:inline" aria-label="Ver audit logs">Logs</a>
+          <div className="flex items-center gap-3 pl-3 border-l border-border">
+            <a 
+              href="/admin/audit" 
+              className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:inline" 
+              aria-label="Ver audit logs"
+            >
+              Logs
+            </a>
             {user?.image && (
-              <Image
-                src={user.image}
-                alt={user.name || user.email || 'Avatar'}
-                width={32}
-                height={32}
-                className="rounded-full border border-border"
-              />
+              <div className="relative">
+                <Image
+                  src={user.image}
+                  alt={user.name || user.email || 'Avatar'}
+                  width={36}
+                  height={36}
+                  className="rounded-full border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
+              </div>
             )}
             <div className="flex flex-col leading-tight max-w-[140px] truncate">
-              <span className="text-xs font-semibold text-primary">Admin</span>
-              {user?.email && <span className="text-xs text-muted-foreground truncate" title={user.email}>{user.email}</span>}
+              <span className="text-xs font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                Admin
+              </span>
+              {user?.email && (
+                <span className="text-xs text-muted-foreground truncate" title={user.email}>
+                  {user.email}
+                </span>
+              )}
             </div>
             <SignOutButton />
           </div>
