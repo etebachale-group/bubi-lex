@@ -1,62 +1,99 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
-import { redirect } from 'next/navigation';
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Plus, List, TrendingUp, Award } from 'lucide-react';
-import { getSupabase } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+type CollaboratorStats = {
+  totalWords: number;
+  myWords: number;
+  wordsToday: number;
+  wordsThisWeek: number;
+  completeness: number;
+};
 
-async function getCollaboratorStats(email: string) {
-  const supabase = getSupabase();
-  
-  // Total de palabras en el diccionario
-  const { count: totalWords } = await supabase
-    .from('dictionary_entries')
-    .select('*', { count: 'exact', head: true });
-  
-  // Palabras creadas por este colaborador
-  const { data: myWords } = await supabase
-    .from('dictionary_entries')
-    .select('id, created_at, ipa, notes')
-    .ilike('created_by', email);
-  
-  const myWordsCount = myWords?.length || 0;
-  
-  // Palabras agregadas hoy
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const wordsToday = myWords?.filter(w => new Date(w.created_at) >= today).length || 0;
-  
-  // Palabras agregadas esta semana
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
-  const wordsThisWeek = myWords?.filter(w => new Date(w.created_at) >= startOfWeek).length || 0;
-  
-  // Calcular completitud (palabras con IPA y notas)
-  const completeWords = myWords?.filter(w => w.ipa && w.notes).length || 0;
-  const completeness = myWordsCount > 0 ? Math.round((completeWords / myWordsCount) * 100) : 0;
-  
-  return {
-    totalWords: totalWords || 0,
-    myWords: myWordsCount,
-    wordsToday,
-    wordsThisWeek,
-    completeness,
+export default function CollaboratorPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [stats, setStats] = useState<CollaboratorStats>({
+    totalWords: 0,
+    myWords: 0,
+    wordsToday: 0,
+    wordsThisWeek: 0,
+    completeness: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    
+    if (status === "unauthenticated") {
+      router.push("/admin/login?next=/collaborator");
+      return;
+    }
+
+    if (status === "authenticated") {
+      const canEdit = (session as any)?.canEditDictionary;
+      if (!canEdit) {
+        router.push("/admin/login?next=/collaborator");
+        return;
+      }
+      
+      fetchStats();
+    }
+  }, [status, session, router]);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/dictionary/bulk');
+      if (!res.ok) throw new Error('Error al cargar estadísticas');
+      
+      const allWords = await res.json();
+      const myWords = allWords.filter(
+        (entry: any) => 
+          entry.created_by?.toLowerCase() === session?.user?.email?.toLowerCase()
+      );
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+
+      const wordsToday = myWords.filter((w: any) => new Date(w.created_at) >= today).length;
+      const wordsThisWeek = myWords.filter((w: any) => new Date(w.created_at) >= startOfWeek).length;
+      
+      const completeWords = myWords.filter((w: any) => w.ipa && w.notes).length;
+      const completeness = myWords.length > 0 ? Math.round((completeWords / myWords.length) * 100) : 0;
+
+      setStats({
+        totalWords: allWords.length,
+        myWords: myWords.length,
+        wordsToday,
+        wordsThisWeek,
+        completeness,
+      });
+    } catch (error) {
+      console.error('Error al cargar estadísticas:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-}
 
-export default async function CollaboratorPage() {
-  const session = await getServerSession(authOptions);
-  
-  // Verificar que el usuario puede editar el diccionario
-  if (!session?.canEditDictionary) {
-    redirect('/admin/login?next=/collaborator');
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-900 dark:via-blue-950 dark:to-cyan-950">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando panel...</p>
+        </div>
+      </div>
+    );
   }
-  
-  const stats = await getCollaboratorStats(session.user?.email || '');
   
   return (
     <div className="container mx-auto py-8 px-4 animate-fade-in">
@@ -71,7 +108,7 @@ export default async function CollaboratorPage() {
               Panel de Colaborador
             </h1>
             <p className="text-muted-foreground">
-              Bienvenido, {session.user?.name || session.user?.email}
+              Bienvenido, {session?.user?.name || session?.user?.email}
             </p>
           </div>
         </div>

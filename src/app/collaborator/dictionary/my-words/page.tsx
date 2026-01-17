@@ -34,18 +34,23 @@ export default function MyWordsPage() {
   });
 
   useEffect(() => {
+    if (status === "loading") return;
+    
     if (status === "unauthenticated") {
       router.push("/admin/login");
       return;
     }
 
-    if (status === "authenticated" && !session?.canEditDictionary) {
-      router.push("/");
-      return;
-    }
-
-    if (status === "authenticated" && session?.user?.email) {
-      fetchMyWords();
+    if (status === "authenticated") {
+      const canEdit = (session as any)?.canEditDictionary;
+      if (!canEdit) {
+        router.push("/");
+        return;
+      }
+      
+      if (session?.user?.email) {
+        fetchMyWords();
+      }
     }
   }, [status, session, router]);
 
