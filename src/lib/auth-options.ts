@@ -1,11 +1,7 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { logger } from './logger';
-
-const allowed = (process.env.ADMIN_GOOGLE_EMAILS || '')
-  .split(',')
-  .map(e => e.trim().toLowerCase())
-  .filter(Boolean);
+import { getUserRole, isAdmin, canEditDictionary } from './roles';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,25 +12,39 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user }) {
-      if (allowed.length === 0) return true;
       const email = user.email?.toLowerCase();
-      const isAllowed = !!email && allowed.includes(email);
+      const role = getUserRole(email);
       
-      if (!isAllowed) {
-        logger.warn('Intento de acceso denegado', { email });
+      // Permitir acceso a todos los usuarios autenticados
+      // El rol determinará qué pueden hacer
+      if (role === 'user') {
+        logger.info('Usuario normal autenticado', { email });
+      } else {
+        logger.info('Usuario con permisos especiales autenticado', { email, role });
       }
       
-      return isAllowed;
+      return true;
     },
     async session({ session, token }) {
       if (session.user?.email) {
-        session.isAdmin = allowed.length === 0 || allowed.includes(session.user.email.toLowerCase());
+        const email = session.user.email.toLowerCase();
+        const role = getUserRole(email);
+        
+        // Agregar información de rol a la sesión
+        session.isAdmin = isAdmin(email);
+        session.role = role;
+        session.canEditDictionary = canEditDictionary(email);
       }
       return session;
     },
     async jwt({ token }) {
       const email = token.email?.toLowerCase();
-      token.isAdmin = allowed.length === 0 || (!!email && allowed.includes(email));
+      const role = getUserRole(email);
+      
+      token.isAdmin = isAdmin(email);
+      token.role = role;
+      token.canEditDictionary = canEditDictionary(email);
+      
       return token;
     },
   },

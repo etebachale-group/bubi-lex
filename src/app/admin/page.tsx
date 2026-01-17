@@ -12,8 +12,25 @@ import {
   Database,
   TrendingUp
 } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { redirect } from 'next/navigation';
 
-export default function AdminPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AdminPage() {
+  const session = await getServerSession(authOptions);
+  
+  // Solo admins pueden acceder
+  if (!session?.isAdmin) {
+    // Si es colaborador, redirigir a su panel
+    if (session?.canEditDictionary) {
+      redirect('/collaborator');
+    }
+    // Si no está autenticado o es usuario normal
+    redirect('/admin/login?next=/admin');
+  }
+  
   const adminSections = [
     {
       title: 'Diccionario',
@@ -30,6 +47,14 @@ export default function AdminPage() {
       icon: Newspaper,
       color: 'from-purple-500 to-pink-500',
       stats: 'Publicaciones'
+    },
+    {
+      title: 'Colaboradores',
+      description: 'Gestionar usuarios colaboradores',
+      href: '/admin/collaborators',
+      icon: Users,
+      color: 'from-green-500 to-emerald-500',
+      stats: 'Permisos'
     },
     {
       title: 'Funcionalidades IA',
@@ -79,6 +104,10 @@ export default function AdminPage() {
             </h1>
             <p className="text-muted-foreground">Gestiona todos los aspectos de BubiLex</p>
           </div>
+        </div>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium">
+          <Shield className="w-4 h-4" />
+          Administrador
         </div>
       </div>
 
