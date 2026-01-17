@@ -1,7 +1,26 @@
 {
   "name": "bubi-lex",
-  "version": "0.1.0",
+  "version": "2.2.0",
+  "description": "Diccionario digital del idioma Bubi con funcionalidades avanzadas de IA",
+  "author": {
+    "name": "Eteba Chale Group",
+    "url": "https://etebachale-group.github.io/cvfernandochaleeteba.github.io/"
+  },
+  "license": "UNLICENSED",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/etebachale-group/bubi-lex.git"
+  },
+  "keywords": [
+    "bubi",
+    "diccionario",
+    "guinea-ecuatorial",
+    "idioma",
+    "lengua-bubi",
+    "ai",
+    "nextjs"
+  ],
   "scripts": {
     "dev": "node -e \"try{require('next/package.json')}catch(e){console.error('Next.js no está instalado. Ejecuta: npm install'); process.exit(1)}\" && next dev",
     "build": "next build",

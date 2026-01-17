@@ -53,12 +53,32 @@ Key variables:
 | `NEXTAUTH_SECRET` | Secret for signing NextAuth JWT / CSRF tokens |
 | `ADMIN_GOOGLE_EMAILS` | Comma-separated allowlist of admin emails (empty = everyone with Google login is admin) |
 | `ENABLE_AUDIT_LOG` | When `true` enables in-memory admin action audit log |
+| `GROQ_API_KEY` | Groq API key for free AI features (recommended) |
+| `TOGETHER_API_KEY` | Together AI API key (alternative) |
+| `OPENAI_API_KEY` | OpenAI API key (optional, for premium AI) |
 
 ### Admin & Authentication
 
 Authentication is implemented with **NextAuth (Google Provider)**. Admin access is restricted by email allowlist (`ADMIN_GOOGLE_EMAILS`).
 
 Protected routes live under `/admin`. Middleware checks a JWT session (strategy = `jwt`).
+
+### AI Features
+
+BubiLex includes advanced AI-powered features:
+- **Contextual Translation** - Translate with cultural context
+- **Practice Quiz** - Auto-generated quizzes
+- **Pronunciation Guide** - IPA notation and tips
+- **Contextual Examples** - Culturally appropriate examples
+- **Etymology** - Word origins and history
+
+Supports multiple providers:
+- **Groq** (free, recommended) - 14,400 req/day
+- **Together AI** (free credits)
+- **Ollama** (local, unlimited)
+- **OpenAI/Anthropic** (premium)
+
+See `FUNCIONALIDADES-IA.md` and `ALTERNATIVAS-GRATUITAS.md` for details.
 
 ### Audit Log (Experimental)
 
@@ -75,5 +95,25 @@ Server-Sent Events endpoint: `/api/dictionary/events` broadcasts insert/update/d
 ### Word of the Day
 
 Deterministic selection based on date hashing with fallback to random and avoidance of consecutive duplicates.
+
+---
+
+## 📄 License & Credits
+
+**© 2025 BubiLex. Todos los derechos reservados.**
+
+Desarrollado por **[Eteba Chale Group](https://etebachale-group.github.io/cvfernandochaleeteba.github.io/)**
+
+### Tecnologías Utilizadas
+- **Next.js 14** - React framework
+- **Supabase** - Database and authentication
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - UI components
+- **Groq** - AI features (free)
+- **NextAuth** - Authentication
+- **TypeScript** - Type safety
+
+### Contribuciones
+Este proyecto es parte del esfuerzo de preservación y promoción del idioma Bubi de Guinea Ecuatorial.
 
 ---
