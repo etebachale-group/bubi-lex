@@ -259,9 +259,10 @@ Esto significa que:
 - `claude-3-opus-20240229` (más preciso)
 
 #### Groq (Gratuito)
-- `llama3-8b-8192` (usado por defecto)
+- `llama-3.3-70b-versatile` (usado por defecto, recomendado)
+- `llama-3.1-70b-versatile`
 - `mixtral-8x7b-32768`
-- `gemma-7b-it`
+- `gemma2-9b-it`
 
 #### Together AI (Gratuito)
 - `mistralai/Mixtral-8x7B-Instruct-v0.1` (usado por defecto)
