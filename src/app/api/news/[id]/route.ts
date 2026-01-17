@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { recordAdminAudit } from '@/lib/audit-log';
+import { logger } from '@/lib/logger';
 
 const NewsUpdateSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(255, 'El título es demasiado largo'),
@@ -39,7 +40,6 @@ export async function PUT(
     }
 
     const { title, content, date, image, video } = parsed.data;
-
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('news')
@@ -56,7 +56,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error al actualizar noticia:', error);
+      logger.error('Error al actualizar noticia', error, { id: idNum });
       return NextResponse.json({ error: 'Error al actualizar la noticia' }, { status: 500 });
     }
 
@@ -72,9 +72,8 @@ export async function PUT(
     });
 
     return NextResponse.json(data);
-
   } catch (err) {
-    console.error('Error en PUT /api/news/[id]:', err);
+    logger.error('Error en PUT /api/news/[id]', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -113,7 +112,7 @@ export async function DELETE(
       .eq('id', idNum);
 
     if (error) {
-      console.error('Error al eliminar noticia:', error);
+      logger.error('Error al eliminar noticia', error, { id: idNum });
       return NextResponse.json({ error: 'Error al eliminar la noticia' }, { status: 500 });
     }
 
@@ -125,9 +124,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ ok: true });
-
   } catch (err) {
-    console.error('Error en DELETE /api/news/[id]:', err);
+    logger.error('Error en DELETE /api/news/[id]', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { recordAdminAudit } from '@/lib/audit-log';
+import { logger } from '@/lib/logger';
 
 const ItemSchema = z.object({
   bubi: z.string().min(1),
@@ -29,21 +30,24 @@ export async function GET(req: Request) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error al obtener entradas:', error);
+      logger.error('Error al obtener entradas', error);
       throw error;
     }
 
     return NextResponse.json(data || []);
   } catch (err) {
-    console.error('Error en GET /api/dictionary/bulk:', err);
+    logger.error('Error en GET /api/dictionary/bulk', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-  const session = await getServerSession(authOptions);
-  if (!(session as any)?.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!(session as any)?.isAdmin) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+    
     const body = await req.json();
     const parsed = BulkSchema.safeParse(Array.isArray(body) ? body : body?.items);
     if (!parsed.success) {
@@ -57,16 +61,20 @@ export async function POST(req: Request) {
       notes: i.notes?.trim() ?? null,
     }));
 
-    // Supabase `insert` can handle an array of objects directly.
-  const supabase = getSupabase();
-  const { error, count } = await supabase.from('dictionary_entries').insert(items);
+    const supabase = getSupabase();
+    const { error, count } = await supabase.from('dictionary_entries').insert(items);
 
     if (error) {
-      console.error('Supabase bulk insert error:', error);
+      logger.error('Error en inserción masiva', error);
       throw error;
     }
 
-    try { broadcast({ kind: 'bulk-insert', count: items.length }); } catch (e) { console.error('Broadcast error:', e); }
+    try { 
+      broadcast({ kind: 'bulk-insert', count: items.length }); 
+    } catch (e) { 
+      logger.warn('Error en broadcast', e); 
+    }
+    
     try {
       recordAdminAudit({
         actorEmail: (session as any)?.user?.email || null,
@@ -74,15 +82,17 @@ export async function POST(req: Request) {
         target: null,
         meta: { count: items.length }
       });
-    } catch {}
+    } catch (e) {
+      logger.warn('Error en auditoría', e);
+    }
 
     return NextResponse.json({
       ok: true,
-      inserted: count ?? items.length, // `count` from Supabase is more reliable
+      inserted: count ?? items.length,
     });
   } catch (err) {
-    console.error(err);
+    logger.error('Error en POST /api/dictionary/bulk', err);
     const detail = process.env.NODE_ENV !== 'production' ? (err as Error)?.message : undefined;
-    return NextResponse.json({ error: 'Internal Server Error', detail }, { status: 500 });
+    return NextResponse.json({ error: 'Error interno del servidor', detail }, { status: 500 });
   }
 }

@@ -53,7 +53,7 @@ export async function GET(req: Request) {
     if (q) {
       const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
       if (error) {
-        logger.error('Error en búsqueda de diccionario', error, { search_term: q });
+        logger.error('Error en búsqueda de diccionario', error as Error, { search_term: q });
         throw error;
       }
       
@@ -69,7 +69,7 @@ export async function GET(req: Request) {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      logger.error('Error al obtener entradas del diccionario', error, { page, limit, lang });
+      logger.error('Error al obtener entradas del diccionario', error as Error, { page, limit, lang });
       throw error;
     }
 
@@ -86,15 +86,18 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-  const session = await getServerSession(authOptions);
-  if (!session?.canEditDictionary) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.canEditDictionary) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+    
     const body = await req.json();
     const parsed = DictionarySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
+    
     const { bubi, spanish, ipa, notes } = parsed.data;
-
     const supabase = getSupabase();
     const { data: newEntry, error } = await supabase
       .from('dictionary_entries')
@@ -110,7 +113,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error('Supabase POST Error:', error);
+      logger.error('Error al crear entrada del diccionario', error);
       throw error;
     }
 
@@ -118,8 +121,9 @@ export async function POST(req: Request) {
       try {
         broadcast({ kind: 'insert', id: newEntry.id, bubi: newEntry.bubi, spanish: newEntry.spanish, ipa: newEntry.ipa });
       } catch (e) {
-        console.error('Broadcast error:', e);
+        logger.warn('Error en broadcast', e as Error);
       }
+      
       recordAdminAudit({
         actorEmail: session?.user?.email || null,
         action: 'dictionary.create',
@@ -130,7 +134,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, id: newEntry?.id }, { status: 201 });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    logger.error('Error en POST /api/dictionary', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

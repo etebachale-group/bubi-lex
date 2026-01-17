@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { recordAdminAudit } from '@/lib/audit-log';
+import { logger } from '@/lib/logger';
 
 const NewsSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(255, 'El título es demasiado largo'),
@@ -31,7 +32,6 @@ export async function POST(req: Request) {
     }
 
     const { title, content, date, image, video } = parsed.data;
-
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('news')
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
+      logger.error('Error al crear noticia', error);
       return NextResponse.json({ error: 'Error al crear la noticia' }, { status: 500 });
     }
 
@@ -62,9 +62,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(data, { status: 201 });
-
   } catch (err) {
-    console.error('Error en POST /api/news:', err);
+    logger.error('Error en POST /api/news', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

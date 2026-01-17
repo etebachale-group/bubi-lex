@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { recordAdminAudit } from '@/lib/audit-log';
+import { logger } from '@/lib/logger';
 
 const DictionarySchema = z.object({
   bubi: z.string().min(1),
@@ -21,15 +22,19 @@ export async function GET(
   if (!Number.isFinite(idNum) || idNum <= 0) {
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
   }
+  
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('dictionary_entries')
     .select('id, bubi, spanish, ipa, notes')
     .eq('id', idNum)
     .single();
+    
   if (error) {
+    logger.error('Error al obtener entrada del diccionario', error, { id: idNum });
     return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
+  
   return NextResponse.json(data);
 }
 
@@ -73,14 +78,14 @@ export async function PUT(
       .single();
       
     if (error) {
-      console.error('Error al actualizar entrada del diccionario:', error);
+      logger.error('Error al actualizar entrada del diccionario', error, { id: idNum });
       return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
     }
     
     try { 
       broadcast({ kind: 'update', id: data.id }); 
     } catch (e) {
-      console.error('Error en broadcast:', e);
+      logger.warn('Error en broadcast', e);
     }
     
     recordAdminAudit({
@@ -92,7 +97,7 @@ export async function PUT(
     
     return NextResponse.json(data);
   } catch (err) {
-    console.error('Error en PUT /api/dictionary/[id]:', err);
+    logger.error('Error en PUT /api/dictionary/[id]', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -131,14 +136,14 @@ export async function DELETE(
       .eq('id', idNum);
       
     if (error) {
-      console.error('Error al eliminar entrada del diccionario:', error);
+      logger.error('Error al eliminar entrada del diccionario', error, { id: idNum });
       return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 });
     }
     
     try { 
       broadcast({ kind: 'delete', id: idNum }); 
     } catch (e) {
-      console.error('Error en broadcast:', e);
+      logger.warn('Error en broadcast', e);
     }
     
     recordAdminAudit({
@@ -150,7 +155,7 @@ export async function DELETE(
     
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('Error en DELETE /api/dictionary/[id]:', err);
+    logger.error('Error en DELETE /api/dictionary/[id]', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
