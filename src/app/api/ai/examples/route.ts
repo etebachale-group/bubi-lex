@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         examples = await generateContextualExamples(bubi, spanish, count);
         provider = 'openai/anthropic';
       } catch (error) {
-        logger.warn('Error con IA de pago, usando alternativas gratuitas', error);
+        logger.warn('Error con IA de pago, usando alternativas gratuitas', { error: error instanceof Error ? error.message : String(error) });
         examples = await generateExamplesWithFreeAI(bubi, spanish, count);
       }
     } else {

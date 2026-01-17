@@ -45,7 +45,7 @@ export async function GET(req: Request) {
         quiz = await generatePracticeQuiz(selectedWords);
         provider = 'openai/anthropic';
       } catch (error) {
-        logger.warn('Error con IA de pago, usando alternativas gratuitas', error);
+        logger.warn('Error con IA de pago, usando alternativas gratuitas', { error: error instanceof Error ? error.message : String(error) });
         quiz = await generateQuizWithFreeAI(selectedWords);
       }
     } else {
