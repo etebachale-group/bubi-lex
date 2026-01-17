@@ -4,7 +4,7 @@ import StructuredData from '@/components/seo/structured-data';
 import Breadcrumbs from '@/components/breadcrumbs';
 import { getSupabase } from '@/lib/db';
 import Link from 'next/link';
-import DictionaryRealtime from './dictionary-realtime';
+import DictionaryViewModern from './dictionary-view-modern';
 
 export const metadata: Metadata = {
   title: 'Diccionario Bubi-Español | BubiLex',
@@ -51,7 +51,7 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
   const sp = searchParams;
   const q = toString(searchParams.q);
   const page = toNumber(searchParams.page, 1);
-  const limit = toNumber(searchParams.limit, 12);
+  const limit = toNumber(searchParams.limit, 50);
   const rawLang = toString(searchParams.lang).trim().toLowerCase();
   const lang: 'bubi' | 'es' = rawLang === 'es' ? 'es' : 'bubi';
   const offset = (page - 1) * limit;
@@ -69,7 +69,7 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
       console.error('Supabase RPC search_dictionary_entries Error:', error);
     } else {
       rows = data || [];
-      total = data?.length || 0; // Nota: RPC no devuelve total, así que esto es una aproximación
+      total = data?.length || 0;
     }
   } else {
     // Query normal para listar todo
@@ -109,33 +109,9 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
         { label: 'Inicio', href: '/' },
         { label: 'Diccionario' },
       ]} />
-      {/* Tabs para ordenar por idioma */}
-      <div className="mb-4" role="tablist" aria-label="Orden del diccionario">
-        <div className="inline-flex rounded-md border p-1 bg-background">
-          {(['bubi', 'es'] as const).map((t) => {
-            const sp = new URLSearchParams();
-            if (q) sp.set('q', q);
-            sp.set('lang', t);
-            sp.set('limit', String(limit));
-            sp.set('page', '1');
-            const href = `/dictionary?${sp.toString()}`;
-            const selected = lang === t;
-            return (
-              <Link
-                key={t}
-                role="tab"
-                aria-selected={selected}
-                href={href}
-                className={`px-3 py-1 text-sm rounded ${selected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
-              >
-                {t === 'bubi' ? 'Bubi → Español' : 'Español → Bubi'}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-      {/* Realtime client view */}
-      <DictionaryRealtime initialTotal={total} initialItems={rows} initialParams={{ q, page, limit, lang }} />
+      
+      {/* Vista moderna del diccionario */}
+      <DictionaryViewModern dictionary={rows} />
     </>
   );
 }

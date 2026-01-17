@@ -1,15 +1,31 @@
 export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
-import NewsView from './news-view';
+import NewsViewModern from './news-view-modern';
 import StructuredData from '@/components/seo/structured-data';
 import React from 'react';
 import Breadcrumbs from '@/components/breadcrumbs';
 import { getSupabase } from '@/lib/db';
-import Pagination from '@/components/pagination';
 
 type SearchParams = {
   page?: string | string[];
   limit?: string | string[];
+};
+
+export const metadata: Metadata = {
+  title: 'Noticias y Relatos | BubiLex',
+  description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
+  keywords: ['Noticias Bubi', 'Relatos Bubi', 'Cultura Bubi', 'Fábulas Bubi'],
+  alternates: {
+    canonical: '/news',
+  },
+  openGraph: {
+    title: 'Noticias y Relatos | BubiLex',
+    description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
+  },
+  twitter: {
+    title: 'Noticias y Relatos | BubiLex',
+    description: 'Las últimas noticias, relatos y fábulas de la cultura Bubi.',
+  },
 };
 
 function toNumber(value: string | string[] | undefined, fallback: number) {
@@ -19,7 +35,7 @@ function toNumber(value: string | string[] | undefined, fallback: number) {
 
 export default async function NewsPage({ searchParams }: { searchParams: SearchParams }) {
   const page = toNumber(searchParams.page, 1);
-  const limit = toNumber(searchParams.limit, 5);
+  const limit = toNumber(searchParams.limit, 10);
   const offset = (page - 1) * limit;
 
   const supabase = getSupabase();
@@ -31,7 +47,6 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
 
   if (error) {
     console.error('Supabase select Error:', error);
-    // Handle error appropriately, maybe show an error message
   }
 
   const total = count ?? 0;
@@ -69,8 +84,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
         { label: 'Inicio', href: '/' },
         { label: 'Noticias' },
       ]} />
-  <NewsView news={(rows ?? []).map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
-      <Pagination basePath="/news" page={page} limit={limit} total={total} />
+      <NewsViewModern news={(rows ?? []).map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
     </>
   );
 }
