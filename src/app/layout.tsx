@@ -49,14 +49,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/img/logo.svg', type: 'image/svg+xml' },
+      { url: '/img/logo.png', type: 'image/png' },
       { url: '/favicon.ico' },
     ],
     apple: [
-      { url: '/img/logo.svg', type: 'image/svg+xml' },
+      { url: '/img/logo.png', type: 'image/png' },
     ],
     shortcut: [
-      { url: '/img/logo.svg', type: 'image/svg+xml' },
+      { url: '/img/logo.png', type: 'image/png' },
     ],
   },
 };

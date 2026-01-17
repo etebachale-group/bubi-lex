@@ -32,7 +32,7 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
         <a href="/" className="flex items-center gap-2 group" aria-label="Inicio BubiLex">
           <div className="relative">
             <Image 
-              src="/img/logo.svg" 
+              src="/img/logo.png" 
               alt="BubiLex" 
               width={40} 
               height={40} 
