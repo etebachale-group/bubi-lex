@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generatePracticeQuiz, isAIAvailable } from '@/lib/ai-features';
+import { generateQuizWithFreeAI } from '@/lib/ai-free-alternatives';
 import { getSupabase } from '@/lib/db';
 import { rateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
@@ -13,13 +14,6 @@ export async function GET(req: Request) {
       return NextResponse.json(
         { error: 'Demasiadas solicitudes' },
         { status: 429 }
-      );
-    }
-
-    if (!isAIAvailable()) {
-      return NextResponse.json(
-        { error: 'IA no disponible' },
-        { status: 503 }
       );
     }
 
@@ -42,11 +36,27 @@ export async function GET(req: Request) {
       .sort(() => Math.random() - 0.5)
       .slice(0, 5);
 
-    const quiz = await generatePracticeQuiz(selectedWords);
+    let quiz;
+    let provider = 'free-ai';
+
+    // Intentar primero con IA de pago si está disponible
+    if (isAIAvailable()) {
+      try {
+        quiz = await generatePracticeQuiz(selectedWords);
+        provider = 'openai/anthropic';
+      } catch (error) {
+        logger.warn('Error con IA de pago, usando alternativas gratuitas', error);
+        quiz = await generateQuizWithFreeAI(selectedWords);
+      }
+    } else {
+      // Usar alternativas gratuitas directamente
+      quiz = await generateQuizWithFreeAI(selectedWords);
+    }
 
     return NextResponse.json({ 
       quiz,
       wordsUsed: selectedWords.length,
+      provider,
     });
   } catch (error) {
     logger.error('Error en GET /api/ai/quiz', error);

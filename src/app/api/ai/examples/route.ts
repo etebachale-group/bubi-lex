@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateContextualExamples, isAIAvailable } from '@/lib/ai-features';
+import { generateExamplesWithFreeAI } from '@/lib/ai-free-alternatives';
 import { rateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -30,14 +31,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verificar si AI está disponible
-    if (!isAIAvailable()) {
-      return NextResponse.json(
-        { error: 'Funcionalidad de IA no disponible. Configura OPENAI_API_KEY o ANTHROPIC_API_KEY.' },
-        { status: 503 }
-      );
-    }
-
     const body = await req.json();
     const parsed = ExamplesSchema.safeParse(body);
     
@@ -52,11 +45,27 @@ export async function POST(req: Request) {
 
     logger.info('Generando ejemplos con IA', { bubi, spanish, count });
 
-    const examples = await generateContextualExamples(bubi, spanish, count);
+    let examples: string[];
+    let provider = 'free-ai';
+
+    // Intentar primero con IA de pago si está disponible
+    if (isAIAvailable()) {
+      try {
+        examples = await generateContextualExamples(bubi, spanish, count);
+        provider = 'openai/anthropic';
+      } catch (error) {
+        logger.warn('Error con IA de pago, usando alternativas gratuitas', error);
+        examples = await generateExamplesWithFreeAI(bubi, spanish, count);
+      }
+    } else {
+      // Usar alternativas gratuitas directamente
+      examples = await generateExamplesWithFreeAI(bubi, spanish, count);
+    }
 
     return NextResponse.json({ 
       examples,
       aiGenerated: true,
+      provider,
     });
   } catch (error) {
     logger.error('Error en POST /api/ai/examples', error);

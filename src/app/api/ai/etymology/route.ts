@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { explainEtymology, isAIAvailable } from '@/lib/ai-features';
+import { explainEtymology } from '@/lib/ai-features';
 import { rateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -21,13 +21,6 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!isAIAvailable()) {
-      return NextResponse.json(
-        { error: 'IA no disponible' },
-        { status: 503 }
-      );
-    }
-
     const body = await req.json();
     const parsed = EtymologySchema.safeParse(body);
     
@@ -39,9 +32,14 @@ export async function POST(req: Request) {
     }
 
     const { bubi, spanish } = parsed.data;
+    
+    // explainEtymology ya tiene fallback integrado
     const explanation = await explainEtymology(bubi, spanish);
 
-    return NextResponse.json({ explanation });
+    return NextResponse.json({ 
+      explanation,
+      provider: 'ai-with-fallback',
+    });
   } catch (error) {
     logger.error('Error en POST /api/ai/etymology', error);
     return NextResponse.json(

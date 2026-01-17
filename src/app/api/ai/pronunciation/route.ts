@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generatePronunciationGuide, isAIAvailable } from '@/lib/ai-features';
+import { generatePronunciationGuide } from '@/lib/ai-features';
 import { rateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -32,9 +32,14 @@ export async function POST(req: Request) {
     }
 
     const { bubi, ipa } = parsed.data;
+    
+    // generatePronunciationGuide ya tiene fallback integrado
     const guide = await generatePronunciationGuide(bubi, ipa);
 
-    return NextResponse.json(guide);
+    return NextResponse.json({
+      ...guide,
+      provider: 'ai-with-fallback',
+    });
   } catch (error) {
     logger.error('Error en POST /api/ai/pronunciation', error);
     return NextResponse.json(
