@@ -14,14 +14,14 @@ export async function GET(req: Request) {
     
     if (mode === 'random') {
       // Para modo random, usar RPC pero excluir el ID anterior si se proporciona
-      const { data, error } = await supabase.rpc('get_random_dictionary_entry').single();
+      const { data, error } = await supabase.rpc('get_random_dictionary_entry').single<Row>();
       if (error) {
         return NextResponse.json({ error: `Error en RPC get_random_dictionary_entry: ${error.message}` }, { status: 500 });
       }
       
       // Si el resultado es el mismo que el excluido, intentar obtener otro
       if (excludeId && data && data.id === parseInt(excludeId)) {
-        const { data: secondTry, error: secondError } = await supabase.rpc('get_random_dictionary_entry').single();
+        const { data: secondTry, error: secondError } = await supabase.rpc('get_random_dictionary_entry').single<Row>();
         if (!secondError && secondTry && secondTry.id !== parseInt(excludeId)) {
           return NextResponse.json(secondTry);
         }
