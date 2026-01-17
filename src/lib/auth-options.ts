@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token }) {
       const email = token.email?.toLowerCase();
-      token.isAdmin = allowed.length === 0 || (email && allowed.includes(email));
+      token.isAdmin = allowed.length === 0 || (!!email && allowed.includes(email));
       return token;
     },
   },
