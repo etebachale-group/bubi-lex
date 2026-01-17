@@ -39,7 +39,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.isAdmin) {
+    if (!session?.canEditDictionary) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
     
@@ -61,7 +61,13 @@ export async function PUT(
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('dictionary_entries')
-      .update({ bubi, spanish, ipa, notes })
+      .update({ 
+        bubi, 
+        spanish, 
+        ipa, 
+        notes,
+        updated_by: session?.user?.email || null
+      })
       .eq('id', idNum)
       .select('id, bubi, spanish, ipa, notes')
       .single();

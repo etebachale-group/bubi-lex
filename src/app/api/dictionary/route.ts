@@ -87,7 +87,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
   const session = await getServerSession(authOptions);
-  if (!session?.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!session?.canEditDictionary) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     const body = await req.json();
     const parsed = DictionarySchema.safeParse(body);
     if (!parsed.success) {
@@ -98,7 +98,14 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     const { data: newEntry, error } = await supabase
       .from('dictionary_entries')
-      .insert({ bubi, spanish, ipa, notes })
+      .insert({ 
+        bubi, 
+        spanish, 
+        ipa, 
+        notes,
+        created_by: session?.user?.email || null,
+        updated_by: session?.user?.email || null
+      })
       .select('id, bubi, spanish, ipa')
       .single();
 

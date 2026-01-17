@@ -15,6 +15,31 @@ const ItemSchema = z.object({
 
 const BulkSchema = z.array(ItemSchema).min(1);
 
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.canEditDictionary) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('dictionary_entries')
+      .select('id, bubi, spanish, ipa, notes, created_at, updated_at, created_by, updated_by')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener entradas:', error);
+      throw error;
+    }
+
+    return NextResponse.json(data || []);
+  } catch (err) {
+    console.error('Error en GET /api/dictionary/bulk:', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
   const session = await getServerSession(authOptions);

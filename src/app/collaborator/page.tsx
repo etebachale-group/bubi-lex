@@ -17,14 +17,34 @@ async function getCollaboratorStats(email: string) {
     .from('dictionary_entries')
     .select('*', { count: 'exact', head: true });
   
-  // Palabras agregadas hoy (simulado - necesitarías un campo created_by y created_at)
-  const today = new Date().toISOString().split('T')[0];
+  // Palabras creadas por este colaborador
+  const { data: myWords } = await supabase
+    .from('dictionary_entries')
+    .select('id, created_at, ipa, notes')
+    .ilike('created_by', email);
+  
+  const myWordsCount = myWords?.length || 0;
+  
+  // Palabras agregadas hoy
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const wordsToday = myWords?.filter(w => new Date(w.created_at) >= today).length || 0;
+  
+  // Palabras agregadas esta semana
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const wordsThisWeek = myWords?.filter(w => new Date(w.created_at) >= startOfWeek).length || 0;
+  
+  // Calcular completitud (palabras con IPA y notas)
+  const completeWords = myWords?.filter(w => w.ipa && w.notes).length || 0;
+  const completeness = myWordsCount > 0 ? Math.round((completeWords / myWordsCount) * 100) : 0;
   
   return {
     totalWords: totalWords || 0,
-    wordsToday: 0, // Implementar cuando tengas tracking
-    wordsThisWeek: 0, // Implementar cuando tengas tracking
-    completeness: 75, // Calcular basado en campos completos
+    myWords: myWordsCount,
+    wordsToday,
+    wordsThisWeek,
+    completeness,
   };
 }
 
@@ -67,8 +87,8 @@ export default async function CollaboratorPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Palabras</p>
-                <p className="text-2xl font-bold">{stats.totalWords}</p>
+                <p className="text-sm text-muted-foreground">Mis Palabras</p>
+                <p className="text-2xl font-bold">{stats.myWords}</p>
               </div>
               <BookOpen className="w-8 h-8 text-blue-500" />
             </div>

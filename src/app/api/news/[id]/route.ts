@@ -49,6 +49,7 @@ export async function PUT(
         date,
         image: image || null,
         video: video || null,
+        updated_by: session?.user?.email || null,
       })
       .eq('id', idNum)
       .select()

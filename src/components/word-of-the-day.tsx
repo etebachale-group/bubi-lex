@@ -63,7 +63,10 @@ const WordOfTheDay = () => {
     
     try {
       const controller = new AbortController();
-      const res = await fetch(`/api/dictionary/random?mode=${mode}&t=${Date.now()}`,
+      const excludeParam = mode === 'random' && lastRandomIdRef.current 
+        ? `&excludeId=${lastRandomIdRef.current}` 
+        : '';
+      const res = await fetch(`/api/dictionary/random?mode=${mode}&t=${Date.now()}${excludeParam}`,
         { cache: 'no-store', signal: controller.signal, headers: { 'Accept': 'application/json' } });
       const data = await res.json();
       
@@ -74,6 +77,7 @@ const WordOfTheDay = () => {
           if (rf.ok && !rj.error) {
             setEntry(rj);
             setError(null);
+            lastRandomIdRef.current = rj.id;
             setIsLoading(false);
             return;
           }
@@ -81,21 +85,6 @@ const WordOfTheDay = () => {
         setError(data?.error || `Error: ${res.status} ${res.statusText}`);
         setIsLoading(false);
         return;
-      }
-      
-      // Evitar repetir la misma palabra
-      if (mode === 'random' && lastRandomIdRef.current && lastRandomIdRef.current === data.id) {
-        const second = await fetch(`/api/dictionary/random?mode=random&t=${Date.now()+1}`, { cache: 'no-store' });
-        if (second.ok) {
-          const sj = await second.json();
-          if (!sj.error && sj.id !== data.id) {
-            setEntry(sj);
-            setError(null);
-            lastRandomIdRef.current = sj.id;
-            setIsLoading(false);
-            return;
-          }
-        }
       }
       
       setEntry(data);
@@ -272,28 +261,40 @@ const WordOfTheDay = () => {
               )}
             </div>
             
-            {/* Pronunciación básica */}
-            {entry.ipa && (
-              <div className="flex items-center justify-between gap-3 p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm">
-                <div className="flex-1">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">Pronunciación IPA</div>
-                  <span className="text-lg font-mono text-foreground">/{entry.ipa}/</span>
+            {/* Pronunciación básica con botón más visible */}
+            <div className="flex items-center justify-between gap-3 p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg backdrop-blur-sm border-2 border-purple-200 dark:border-purple-800">
+              <div className="flex-1">
+                <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase mb-1 flex items-center gap-2">
+                  <Volume2 className="w-4 h-4" />
+                  Escuchar Pronunciación
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={onSpeak} 
-                  aria-label={isSpeaking ? "Detener" : "Escuchar pronunciación"}
-                  className="hover:bg-purple-100 dark:hover:bg-purple-900/30"
-                >
-                  {isSpeaking ? (
-                    <Pause className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  ) : (
-                    <Play className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  )}
-                </Button>
+                {entry.ipa && (
+                  <span className="text-lg font-mono text-foreground">/{entry.ipa}/</span>
+                )}
               </div>
-            )}
+              <Button 
+                size="lg"
+                onClick={onSpeak} 
+                aria-label={isSpeaking ? "Detener" : "Escuchar pronunciación"}
+                className={`${
+                  isSpeaking 
+                    ? 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700' 
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                } text-white shadow-lg hover:shadow-xl transition-all`}
+              >
+                {isSpeaking ? (
+                  <>
+                    <Pause className="w-5 h-5 mr-2" />
+                    Detener
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 mr-2" />
+                    Escuchar
+                  </>
+                )}
+              </Button>
+            </div>
             
             {/* Pronunciación detallada con IA */}
             {pronunciation && (

@@ -42,6 +42,8 @@ export async function POST(req: Request) {
           date,
           image: image || null,
           video: video || null,
+          created_by: session?.user?.email || null,
+          updated_by: session?.user?.email || null,
         },
       ])
       .select()
