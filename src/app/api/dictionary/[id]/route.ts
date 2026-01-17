@@ -85,7 +85,7 @@ export async function PUT(
     try { 
       broadcast({ kind: 'update', id: data.id }); 
     } catch (e) {
-      logger.warn('Error en broadcast', e);
+      logger.warn('Error en broadcast', e as Error);
     }
     
     recordAdminAudit({
@@ -143,7 +143,7 @@ export async function DELETE(
     try { 
       broadcast({ kind: 'delete', id: idNum }); 
     } catch (e) {
-      logger.warn('Error en broadcast', e);
+      logger.warn('Error en broadcast', e as Error);
     }
     
     recordAdminAudit({
