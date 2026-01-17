@@ -56,7 +56,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      logger.error('Error al actualizar noticia', error, { id: idNum });
+      logger.error('Error al actualizar noticia', error as Error, { id: idNum });
       return NextResponse.json({ error: 'Error al actualizar la noticia' }, { status: 500 });
     }
 
@@ -112,7 +112,7 @@ export async function DELETE(
       .eq('id', idNum);
 
     if (error) {
-      logger.error('Error al eliminar noticia', error, { id: idNum });
+      logger.error('Error al eliminar noticia', error as Error, { id: idNum });
       return NextResponse.json({ error: 'Error al eliminar la noticia' }, { status: 500 });
     }
 

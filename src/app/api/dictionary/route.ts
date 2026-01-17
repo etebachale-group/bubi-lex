@@ -113,7 +113,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      logger.error('Error al crear entrada del diccionario', error);
+      logger.error('Error al crear entrada del diccionario', error as Error);
       throw error;
     }
 

@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      logger.error('Error al crear noticia', error);
+      logger.error('Error al crear noticia', error as Error);
       return NextResponse.json({ error: 'Error al crear la noticia' }, { status: 500 });
     }
 

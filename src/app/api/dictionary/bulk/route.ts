@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      logger.error('Error al obtener entradas', error);
+      logger.error('Error al obtener entradas', error as Error);
       throw error;
     }
 
@@ -65,14 +65,14 @@ export async function POST(req: Request) {
     const { error, count } = await supabase.from('dictionary_entries').insert(items);
 
     if (error) {
-      logger.error('Error en inserción masiva', error);
+      logger.error('Error en inserción masiva', error as Error);
       throw error;
     }
 
     try { 
       broadcast({ kind: 'bulk-insert', count: items.length }); 
     } catch (e) { 
-      logger.warn('Error en broadcast', e); 
+      logger.warn('Error en broadcast', e as Error); 
     }
     
     try {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         meta: { count: items.length }
       });
     } catch (e) {
-      logger.warn('Error en auditoría', e);
+      logger.warn('Error en auditoría', e as Error);
     }
 
     return NextResponse.json({

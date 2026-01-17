@@ -31,7 +31,7 @@ export async function GET(
     .single();
     
   if (error) {
-    logger.error('Error al obtener entrada del diccionario', error, { id: idNum });
+    logger.error('Error al obtener entrada del diccionario', error as Error, { id: idNum });
     return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
   
@@ -78,7 +78,7 @@ export async function PUT(
       .single();
       
     if (error) {
-      logger.error('Error al actualizar entrada del diccionario', error, { id: idNum });
+      logger.error('Error al actualizar entrada del diccionario', error as Error, { id: idNum });
       return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
     }
     
@@ -136,7 +136,7 @@ export async function DELETE(
       .eq('id', idNum);
       
     if (error) {
-      logger.error('Error al eliminar entrada del diccionario', error, { id: idNum });
+      logger.error('Error al eliminar entrada del diccionario', error as Error, { id: idNum });
       return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 });
     }
     
