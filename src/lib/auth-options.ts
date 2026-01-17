@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import { logger } from './logger';
 
 const allowed = (process.env.ADMIN_GOOGLE_EMAILS || '')
   .split(',')
@@ -17,17 +18,23 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       if (allowed.length === 0) return true;
       const email = user.email?.toLowerCase();
-      return !!email && allowed.includes(email);
+      const isAllowed = !!email && allowed.includes(email);
+      
+      if (!isAllowed) {
+        logger.warn('Intento de acceso denegado', { email });
+      }
+      
+      return isAllowed;
     },
-    async session({ session }) {
+    async session({ session, token }) {
       if (session.user?.email) {
-        (session as any).isAdmin = allowed.length === 0 || allowed.includes(session.user.email.toLowerCase());
+        session.isAdmin = allowed.length === 0 || allowed.includes(session.user.email.toLowerCase());
       }
       return session;
     },
     async jwt({ token }) {
       const email = token.email?.toLowerCase();
-      (token as any).isAdmin = allowed.length === 0 || (email && allowed.includes(email));
+      token.isAdmin = allowed.length === 0 || (email && allowed.includes(email));
       return token;
     },
   },

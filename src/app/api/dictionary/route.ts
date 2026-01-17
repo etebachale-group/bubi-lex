@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { recordAdminAudit } from '@/lib/audit-log';
+import { logger } from '@/lib/logger';
+import { rateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 const DictionarySchema = z.object({
   bubi: z.string().min(1),
@@ -15,6 +17,24 @@ const DictionarySchema = z.object({
 
 export async function GET(req: Request) {
   try {
+    // Rate limiting para búsquedas públicas
+    const identifier = getClientIdentifier(req);
+    const rateLimitResult = rateLimit(`dictionary:${identifier}`, RATE_LIMITS.moderate);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Por favor, intenta más tarde.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get('q') || '').trim();
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
@@ -33,10 +53,15 @@ export async function GET(req: Request) {
     if (q) {
       const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
       if (error) {
-        console.error('Supabase RPC search_dictionary_entries Error:', error);
+        logger.error('Error en búsqueda de diccionario', error, { search_term: q });
         throw error;
       }
-      return NextResponse.json({ items: data, total: data?.length || 0 });
+      
+      const response = NextResponse.json({ items: data, total: data?.length || 0 });
+      response.headers.set('X-RateLimit-Limit', String(rateLimitResult.limit));
+      response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining));
+      response.headers.set('X-RateLimit-Reset', String(rateLimitResult.reset));
+      return response;
     }
 
     const { data: rows, count, error } = await query
@@ -44,21 +69,25 @@ export async function GET(req: Request) {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Supabase GET Error:', error);
+      logger.error('Error al obtener entradas del diccionario', error, { page, limit, lang });
       throw error;
     }
 
-    return NextResponse.json({ items: rows, total: count ?? 0 });
+    const response = NextResponse.json({ items: rows, total: count ?? 0 });
+    response.headers.set('X-RateLimit-Limit', String(rateLimitResult.limit));
+    response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining));
+    response.headers.set('X-RateLimit-Reset', String(rateLimitResult.reset));
+    return response;
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    logger.error('Error en GET /api/dictionary', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
   const session = await getServerSession(authOptions);
-  if (!(session as any)?.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session?.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     const body = await req.json();
     const parsed = DictionarySchema.safeParse(body);
     if (!parsed.success) {
@@ -82,16 +111,14 @@ export async function POST(req: Request) {
       try {
         broadcast({ kind: 'insert', id: newEntry.id, bubi: newEntry.bubi, spanish: newEntry.spanish, ipa: newEntry.ipa });
       } catch (e) {
-        console.error('Broadcast error', e);
+        console.error('Broadcast error:', e);
       }
-      try {
-        recordAdminAudit({
-          actorEmail: (session as any)?.user?.email || null,
-          action: 'dictionary.create',
-          target: newEntry.id,
-          meta: { bubi: newEntry.bubi, spanish: newEntry.spanish }
-        });
-      } catch {}
+      recordAdminAudit({
+        actorEmail: session?.user?.email || null,
+        action: 'dictionary.create',
+        target: newEntry.id,
+        meta: { bubi: newEntry.bubi, spanish: newEntry.spanish }
+      });
     }
 
     return NextResponse.json({ ok: true, id: newEntry?.id }, { status: 201 });

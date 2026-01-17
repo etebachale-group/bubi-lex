@@ -1,24 +1,44 @@
 import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
+import { z } from 'zod';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { recordAdminAudit } from '@/lib/audit-log';
 
-// TODO: Add authentication to protect this route
+const NewsUpdateSchema = z.object({
+  title: z.string().min(1, 'El título es requerido').max(255, 'El título es demasiado largo'),
+  content: z.string().min(1, 'El contenido es requerido'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
+  image: z.string().url('URL de imagen inválida').max(512).optional().nullable(),
+  video: z.string().url('URL de video inválida').max(512).optional().nullable(),
+});
 
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.isAdmin) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const idNum = Number(params.id);
     if (!Number.isFinite(idNum) || idNum <= 0) {
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
     }
 
     const body = await req.json();
-    const { title, content, date, image, video } = body;
-
-    if (!title || !content || !date) {
-      return NextResponse.json({ error: 'Título, contenido y fecha son requeridos' }, { status: 400 });
+    const parsed = NewsUpdateSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ 
+        error: 'Datos inválidos', 
+        details: parsed.error.flatten() 
+      }, { status: 400 });
     }
+
+    const { title, content, date, image, video } = parsed.data;
 
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -35,15 +55,26 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Supabase update error:', error);
+      console.error('Error al actualizar noticia:', error);
       return NextResponse.json({ error: 'Error al actualizar la noticia' }, { status: 500 });
     }
 
-    return NextResponse.json(data, { status: 200 });
+    if (!data) {
+      return NextResponse.json({ error: 'Noticia no encontrada' }, { status: 404 });
+    }
+
+    recordAdminAudit({
+      actorEmail: session?.user?.email || null,
+      action: 'news.update',
+      target: data.id,
+      meta: { title: data.title }
+    });
+
+    return NextResponse.json(data);
 
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error en PUT /api/news/[id]:', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
@@ -52,26 +83,50 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.isAdmin) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const idNum = Number(params.id);
     if (!Number.isFinite(idNum) || idNum <= 0) {
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
     }
 
     const supabase = getSupabase();
+    
+    // Obtener datos antes de eliminar para auditoría
+    const { data: existing } = await supabase
+      .from('news')
+      .select('id, title')
+      .eq('id', idNum)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Noticia no encontrada' }, { status: 404 });
+    }
+
     const { error } = await supabase
       .from('news')
       .delete()
-      .match({ id: idNum });
+      .eq('id', idNum);
 
     if (error) {
-      console.error('Supabase delete error:', error);
+      console.error('Error al eliminar noticia:', error);
       return NextResponse.json({ error: 'Error al eliminar la noticia' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Noticia eliminada con éxito' }, { status: 200 });
+    recordAdminAudit({
+      actorEmail: session?.user?.email || null,
+      action: 'news.delete',
+      target: idNum,
+      meta: { title: existing.title }
+    });
+
+    return NextResponse.json({ ok: true });
 
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error en DELETE /api/news/[id]:', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
