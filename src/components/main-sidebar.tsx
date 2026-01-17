@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Book, Newspaper, User, X } from 'lucide-react';
+import { Home, Book, Newspaper, User, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/dictionary', label: 'Diccionario', icon: Book },
   { href: '/news', label: 'Noticias', icon: Newspaper },
+  { href: '/ai-features', label: 'IA', icon: Sparkles, badge: 'Nuevo' },
   { href: '/admin', label: 'Admin', icon: User },
 ];
 
@@ -48,13 +49,20 @@ const SidebarContent = ({ setSidebarOpen }: { setSidebarOpen: (open: boolean) =>
                 href={item.href}
                 onClick={handleLinkClick}
                 className={cn(
-                  'flex items-center p-3 rounded-lg transition-colors hover:bg-muted',
+                  'flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-muted',
                   pathname === item.href ? 'bg-primary text-primary-foreground' : ''
                 )}
                 aria-current={pathname === item.href ? 'page' : undefined}
               >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
+                <div className="flex items-center">
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.label}
+                </div>
+                {item.badge && (
+                  <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             </li>
           ))}
