@@ -56,23 +56,32 @@ export default function NewsEditForm({ newsItem }: NewsEditFormProps) {
     const url = newsItem ? `/api/news/${newsItem.id}` : '/api/news';
     const method = newsItem ? 'PUT' : 'POST';
 
+    // Preparar datos: convertir strings vacíos a null para URLs opcionales
+    const dataToSend = {
+      ...formData,
+      image: formData.image.trim() || null,
+      video: formData.video.trim() || null,
+    };
+
     try {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!res.ok) {
-        throw new Error('Failed to save news item');
+        const errorData = await res.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to save news item');
       }
 
       alert(`Noticia ${newsItem ? 'actualizada' : 'creada'} con éxito.`);
       router.push('/admin/news');
       router.refresh(); // To ensure the list is updated
     } catch (error) {
-      console.error(error);
-      alert('Error al guardar la noticia.');
+      console.error('Error al guardar:', error);
+      alert(`Error al guardar la noticia: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setIsSubmitting(false);
     }
