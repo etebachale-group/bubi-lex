@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Volume2
 } from "lucide-react";
+import { speak } from "@/lib/speech-synthesis";
 
 type LearningMode = 'menu' | 'session' | 'quiz';
 
@@ -191,12 +192,11 @@ const LearningSystem = () => {
   };
 
   // Pronunciar palabra
-  const speakWord = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'es-ES';
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+  const speakWord = async (text: string) => {
+    try {
+      await speak(text, { rate: 0.8 }, true); // normalizeText = true
+    } catch (error) {
+      console.error('Error al pronunciar:', error);
     }
   };
 

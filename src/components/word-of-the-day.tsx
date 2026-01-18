@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Volume2, Sparkles, RefreshCw, Play, Pause, AlertCircle, Clock, BookOpen } from "lucide-react";
+import { speak, stopSpeaking } from "@/lib/speech-synthesis";
 
 type DictEntry = { 
   id: number; 
@@ -12,34 +13,6 @@ type DictEntry = {
   ipa: string | null; 
   notes: string | null;
 };
-
-function pickSpanishVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  if (!voices || voices.length === 0) return null;
-  let v = voices.find((x) => x.lang?.toLowerCase() === 'es-es');
-  if (v) return v;
-  v = voices.find((x) => x.lang?.toLowerCase().startsWith('es'));
-  if (v) return v;
-  v = voices.find((x) => /spanish|espan(ol|̃ol)/i.test(x.name));
-  return v || null;
-}
-
-function speak(text: string, voice: SpeechSynthesisVoice | null) {
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    if (voice) {
-      u.voice = voice;
-      u.lang = voice.lang || 'es-ES';
-    } else {
-      u.lang = 'es-ES';
-    }
-    u.rate = 0.85;
-    u.pitch = 1.0;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch (e) {
-    console.error('Error al reproducir audio:', e);
-  }
-}
 
 const ROTATION_INTERVAL = 60 * 1000; // 1 minuto
 
@@ -53,7 +26,6 @@ const WordOfTheDay = () => {
   const [isLoadingExamples, setIsLoadingExamples] = useState(false);
   const timerRef = useRef<number | null>(null);
   const countdownRef = useRef<number | null>(null);
-  const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
   const usedIdsRef = useRef<Set<number>>(new Set());
 
   const fetchRandomWord = useCallback(async () => {
@@ -129,43 +101,31 @@ const WordOfTheDay = () => {
     }, 1000);
     countdownRef.current = countdownTimer as unknown as number;
     
-    // Configurar voces TTS
-    const loadVoices = () => {
-      try {
-        const voices = window.speechSynthesis.getVoices();
-        setTtsVoice(pickSpanishVoice(voices));
-      } catch (e) {
-        console.error('Error al cargar voces:', e);
-      }
-    };
-    
-    loadVoices();
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-    
     return () => { 
       if (timerRef.current) window.clearInterval(timerRef.current);
       if (countdownRef.current) window.clearInterval(countdownRef.current);
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      stopSpeaking();
     };
   }, [fetchRandomWord]);
 
-  const onSpeak = useCallback(() => {
+  const onSpeak = useCallback(async () => {
     if (!entry) return;
     
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      stopSpeaking();
       setIsSpeaking(false);
       return;
     }
     
     setIsSpeaking(true);
-    speak(entry.bubi, ttsVoice);
-    
-    // Detectar cuando termina de hablar
-    setTimeout(() => setIsSpeaking(false), 3000);
-  }, [entry, ttsVoice, isSpeaking]);
+    try {
+      await speak(entry.bubi, { rate: 0.85 }, true); // normalizeText = true
+    } catch (error) {
+      console.error('Error al hablar:', error);
+    } finally {
+      setIsSpeaking(false);
+    }
+  }, [entry, isSpeaking]);
 
   const onGenerateExamples = useCallback(async () => {
     if (!entry || isLoadingExamples) return;

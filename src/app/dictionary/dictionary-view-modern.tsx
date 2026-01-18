@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { speak } from '@/lib/speech-synthesis';
 
 interface DictionaryEntry {
   id: number;
@@ -53,11 +54,11 @@ const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch 
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handlePronounce = (word: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'es-ES';
-      window.speechSynthesis.speak(utterance);
+  const handlePronounce = async (word: string) => {
+    try {
+      await speak(word, { rate: 0.85 }, true); // normalizeText = true
+    } catch (error) {
+      console.error('Error al pronunciar:', error);
     }
   };
 
