@@ -9,7 +9,6 @@ type Row = {
   spanish: string; 
   ipa: string | null; 
   notes: string | null;
-  category: string | null;
 };
 
 /**
@@ -61,7 +60,7 @@ export async function GET(req: Request) {
 
       const { data, error } = await supabase
         .from('dictionary_entries')
-        .select('id, bubi, spanish, ipa, notes, category')
+        .select('id, bubi, spanish, ipa, notes')
         .order('id', { ascending: true })
         .range(offset, offset)
         .single();
@@ -83,7 +82,7 @@ export async function GET(req: Request) {
         
         const { data, error } = await supabase
           .from('dictionary_entries')
-          .select('id, bubi, spanish, ipa, notes, category')
+          .select('id, bubi, spanish, ipa, notes')
           .order('id', { ascending: true })
           .range(randomOffset, randomOffset)
           .single();
@@ -108,7 +107,7 @@ export async function GET(req: Request) {
         const randomOffset = Math.floor(Math.random() * count);
         const { data, error } = await supabase
           .from('dictionary_entries')
-          .select('id, bubi, spanish, ipa, notes, category')
+          .select('id, bubi, spanish, ipa, notes')
           .order('id', { ascending: true })
           .range(randomOffset, randomOffset)
           .single();
