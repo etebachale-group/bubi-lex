@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/response';
+import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { logger } from '@/lib/logger';
-import { revalidatePath } from 'next/cache';
 
 export async function DELETE(
   req: Request,
