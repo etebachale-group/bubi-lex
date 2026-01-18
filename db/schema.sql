@@ -34,7 +34,11 @@ CREATE TABLE IF NOT EXISTS `news` (
 	`likes` INT UNSIGNED NOT NULL DEFAULT 0,
 	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+	`created_by` VARCHAR(255) NULL,
+	`updated_by` VARCHAR(255) NULL,
 	PRIMARY KEY (`id`),
-	KEY `idx_news_date` (`date`)
+	KEY `idx_news_date` (`date`),
+	KEY `idx_news_created_by` (`created_by`),
+	KEY `idx_news_updated_by` (`updated_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -33,19 +33,22 @@ export async function POST(req: Request) {
 
     const { title, content, date, image, video } = parsed.data;
     const supabase = getSupabase();
+    
+    // Preparar datos para insertar (sin created_by/updated_by si no existen en la tabla)
+    const insertData: any = {
+      title,
+      content,
+      date,
+      image: image || null,
+      video: video || null,
+    };
+    
+    // Solo agregar created_by/updated_by si la tabla los soporta
+    // Por ahora los omitimos para compatibilidad
+    
     const { data, error } = await supabase
       .from('news')
-      .insert([
-        {
-          title,
-          content,
-          date,
-          image: image || null,
-          video: video || null,
-          created_by: session?.user?.email || null,
-          updated_by: session?.user?.email || null,
-        },
-      ])
+      .insert([insertData])
       .select()
       .single();
 

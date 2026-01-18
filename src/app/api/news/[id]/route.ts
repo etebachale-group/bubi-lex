@@ -42,16 +42,19 @@ export async function PUT(
 
     const { title, content, date, image, video } = parsed.data;
     const supabase = getSupabase();
+    
+    // Preparar datos para actualizar (sin updated_by si no existe en la tabla)
+    const updateData: any = {
+      title,
+      content,
+      date,
+      image: image || null,
+      video: video || null,
+    };
+    
     const { data, error } = await supabase
       .from('news')
-      .update({
-        title,
-        content,
-        date,
-        image: image || null,
-        video: video || null,
-        updated_by: session?.user?.email || null,
-      })
+      .update(updateData)
       .eq('id', idNum)
       .select()
       .single();
