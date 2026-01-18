@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check } from 'lucide-react';
+import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface DictionaryEntry {
   id: number;
@@ -16,17 +17,35 @@ interface DictionaryEntry {
 
 interface DictionaryViewProps {
   dictionary: DictionaryEntry[];
+  initialLang?: 'bubi' | 'es';
+  initialSearch?: string;
 }
 
-const DictionaryViewModern = ({ dictionary }: DictionaryViewProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch = '' }: DictionaryViewProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [searchLang, setSearchLang] = useState<'bubi' | 'es'>(initialLang);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const filteredDictionary = dictionary.filter(
-    (entry) =>
-      entry.bubi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.spanish.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrado local basado en el idioma seleccionado
+  const filteredDictionary = dictionary.filter((entry) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    
+    if (searchLang === 'bubi') {
+      return entry.bubi.toLowerCase().includes(term);
+    } else {
+      return entry.spanish.toLowerCase().includes(term);
+    }
+  });
+
+  // Ordenar alfabéticamente según el idioma de búsqueda
+  const sortedDictionary = [...filteredDictionary].sort((a, b) => {
+    const fieldA = searchLang === 'bubi' ? a.bubi : a.spanish;
+    const fieldB = searchLang === 'bubi' ? b.bubi : b.spanish;
+    return fieldA.localeCompare(fieldB, 'es', { sensitivity: 'base' });
+  });
 
   const handleCopy = (text: string, id: number) => {
     navigator.clipboard.writeText(text);
@@ -40,6 +59,33 @@ const DictionaryViewModern = ({ dictionary }: DictionaryViewProps) => {
       utterance.lang = 'es-ES';
       window.speechSynthesis.speak(utterance);
     }
+  };
+
+  const toggleSearchLang = () => {
+    const newLang = searchLang === 'bubi' ? 'es' : 'bubi';
+    setSearchLang(newLang);
+    
+    // Actualizar URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('lang', newLang);
+    if (searchTerm) {
+      params.set('q', searchTerm);
+    }
+    router.push(`/dictionary?${params.toString()}`);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    
+    // Actualizar URL con debounce
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set('q', value);
+    } else {
+      params.delete('q');
+    }
+    params.set('lang', searchLang);
+    router.push(`/dictionary?${params.toString()}`);
   };
 
   return (
@@ -59,13 +105,53 @@ const DictionaryViewModern = ({ dictionary }: DictionaryViewProps) => {
         </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="max-w-2xl mx-auto w-full">
+      {/* Search Bar with Language Toggle */}
+      <div className="max-w-2xl mx-auto w-full space-y-4">
+        {/* Language Direction Selector */}
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant={searchLang === 'bubi' ? 'default' : 'outline'}
+            onClick={() => {
+              setSearchLang('bubi');
+              const params = new URLSearchParams(searchParams.toString());
+              params.set('lang', 'bubi');
+              router.push(`/dictionary?${params.toString()}`);
+            }}
+            className="flex-1 max-w-[200px] glass-card"
+          >
+            Bubi → Español
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSearchLang}
+            className="rounded-full hover:rotate-180 transition-transform duration-300"
+            title="Cambiar dirección de búsqueda"
+          >
+            <ArrowRightLeft className="w-5 h-5" />
+          </Button>
+          
+          <Button
+            variant={searchLang === 'es' ? 'default' : 'outline'}
+            onClick={() => {
+              setSearchLang('es');
+              const params = new URLSearchParams(searchParams.toString());
+              params.set('lang', 'es');
+              router.push(`/dictionary?${params.toString()}`);
+            }}
+            className="flex-1 max-w-[200px] glass-card"
+          >
+            Español → Bubi
+          </Button>
+        </div>
+
+        {/* Search Input */}
         <div className="relative">
           <Input
-            placeholder="Busca una palabra en Bubi o Español..."
+            placeholder={searchLang === 'bubi' ? 'Busca una palabra en Bubi...' : 'Busca una palabra en Español...'}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-12 pr-4 py-6 text-lg glass-card border-2 focus:border-blue-400 dark:focus:border-blue-600 transition-all"
           />
           <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -74,21 +160,29 @@ const DictionaryViewModern = ({ dictionary }: DictionaryViewProps) => {
               variant="ghost"
               size="sm"
               className="absolute right-2 top-1/2 -translate-y-1/2"
-              onClick={() => setSearchTerm('')}
+              onClick={() => handleSearch('')}
             >
               Limpiar
             </Button>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-2 text-center">
-          {filteredDictionary.length} {filteredDictionary.length === 1 ? 'resultado' : 'resultados'}
-        </p>
+        
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <p>
+            Buscando en: <span className="font-semibold text-blue-600 dark:text-blue-400">
+              {searchLang === 'bubi' ? 'Bubi' : 'Español'}
+            </span>
+          </p>
+          <p>
+            {sortedDictionary.length} {sortedDictionary.length === 1 ? 'resultado' : 'resultados'}
+          </p>
+        </div>
       </div>
 
       {/* Dictionary Grid */}
-      {filteredDictionary.length > 0 ? (
+      {sortedDictionary.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredDictionary.map((entry, index) => (
+          {sortedDictionary.map((entry, index) => (
             <Card 
               key={entry.id}
               className="glass-card border-2 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:scale-105 hover:shadow-xl group"

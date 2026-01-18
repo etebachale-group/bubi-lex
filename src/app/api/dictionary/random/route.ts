@@ -1,76 +1,131 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
-type Row = { id: number; bubi: string; spanish: string; ipa: string | null; notes: string | null };
+type Row = { 
+  id: number; 
+  bubi: string; 
+  spanish: string; 
+  ipa: string | null; 
+  notes: string | null;
+  category: string | null;
+};
 
+/**
+ * GET /api/dictionary/random
+ * 
+ * Retorna una palabra aleatoria del diccionario
+ * 
+ * Query params:
+ * - mode: 'daily' (palabra del día, determinística) o 'random' (completamente aleatoria)
+ * - excludeId: ID a excluir (opcional, para evitar repetir la misma palabra)
+ */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const mode = (searchParams.get('mode') || 'daily').toLowerCase();
-    const excludeId = searchParams.get('excludeId');
+    const excludeIdParam = searchParams.get('excludeId');
+    const excludeId = excludeIdParam ? parseInt(excludeIdParam) : null;
 
     const supabase = getSupabase();
     
-    if (mode === 'random') {
-      // Para modo random, usar RPC pero excluir el ID anterior si se proporciona
-      const { data, error } = await supabase.rpc('get_random_dictionary_entry').single<Row>();
-      if (error) {
-        return NextResponse.json({ error: `Error en RPC get_random_dictionary_entry: ${error.message}` }, { status: 500 });
-      }
-      
-      // Si el resultado es el mismo que el excluido, intentar obtener otro
-      if (excludeId && data && data.id === parseInt(excludeId)) {
-        const { data: secondTry, error: secondError } = await supabase.rpc('get_random_dictionary_entry').single<Row>();
-        if (!secondError && secondTry && secondTry.id !== parseInt(excludeId)) {
-          return NextResponse.json(secondTry);
-        }
-      }
-      
-      return NextResponse.json(data || null);
-    }
-
-    // daily deterministic pick (stable hash of YYYY-MM-DD to spread selection)
+    // Obtener el conteo total de palabras
     const { count, error: countError } = await supabase
       .from('dictionary_entries')
       .select('*', { count: 'exact', head: true });
 
     if (countError) {
-      return NextResponse.json({ error: `Error al contar filas: ${countError.message}` }, { status: 500 });
-    }
-    if (!count || count === 0) {
-      return NextResponse.json({ error: `No se encontraron filas. El conteo es: ${count}. ¿La tabla está vacía o RLS está bloqueando el acceso?` }, { status: 404 });
-    }
-
-    const now = new Date();
-    const y = now.getUTCFullYear();
-    const m = now.getUTCMonth() + 1; // 1-12
-    const d = now.getUTCDate();
-    const key = `${y}-${m}-${d}`;
-    // Simple FNV-1a like hash for string date
-    let hash = 2166136261;
-    for (let i = 0; i < key.length; i++) {
-      hash ^= key.charCodeAt(i);
-      hash = (hash * 16777619) >>> 0;
-    }
-    const offset = hash % count;
-
-    const { data, error: fetchError } = await supabase
-      .from('dictionary_entries')
-      .select('id, bubi, spanish, ipa, notes')
-      .range(offset, offset)
-      .single();
-
-    if (fetchError) {
-      return NextResponse.json({ error: `Error al obtener la palabra (offset: ${offset}): ${fetchError.message}` }, { status: 500 });
+      logger.error('Error al contar palabras del diccionario', countError as Error);
+      return NextResponse.json({ error: 'Error al contar palabras' }, { status: 500 });
     }
     
-    if (!data) {
-        return NextResponse.json({ error: `No se encontró ninguna palabra para el offset: ${offset}.` }, { status: 404 });
+    if (!count || count === 0) {
+      return NextResponse.json({ error: 'No hay palabras en el diccionario' }, { status: 404 });
     }
 
-    return NextResponse.json(data);
+    let selectedWord: Row | null = null;
+
+    if (mode === 'daily') {
+      // Palabra del día: determinística basada en la fecha
+      const now = new Date();
+      const dateKey = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+      
+      // Hash simple de la fecha para obtener un offset consistente
+      let hash = 2166136261;
+      for (let i = 0; i < dateKey.length; i++) {
+        hash ^= dateKey.charCodeAt(i);
+        hash = (hash * 16777619) >>> 0;
+      }
+      const offset = hash % count;
+
+      const { data, error } = await supabase
+        .from('dictionary_entries')
+        .select('id, bubi, spanish, ipa, notes, category')
+        .order('id', { ascending: true })
+        .range(offset, offset)
+        .single();
+
+      if (error) {
+        logger.error('Error al obtener palabra del día', error as Error, { offset });
+        return NextResponse.json({ error: 'Error al obtener palabra del día' }, { status: 500 });
+      }
+
+      selectedWord = data;
+    } else {
+      // Modo random: obtener una palabra completamente aleatoria
+      // Intentar hasta 3 veces para evitar el ID excluido
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      while (attempts < maxAttempts) {
+        const randomOffset = Math.floor(Math.random() * count);
+        
+        const { data, error } = await supabase
+          .from('dictionary_entries')
+          .select('id, bubi, spanish, ipa, notes, category')
+          .order('id', { ascending: true })
+          .range(randomOffset, randomOffset)
+          .single();
+
+        if (error) {
+          logger.error('Error al obtener palabra aleatoria', error as Error, { randomOffset, attempt: attempts + 1 });
+          attempts++;
+          continue;
+        }
+
+        // Si no hay ID a excluir, o si el ID es diferente, usar esta palabra
+        if (!excludeId || data.id !== excludeId) {
+          selectedWord = data;
+          break;
+        }
+
+        attempts++;
+      }
+
+      // Si después de 3 intentos no encontramos una palabra diferente, usar la última
+      if (!selectedWord && attempts === maxAttempts) {
+        const randomOffset = Math.floor(Math.random() * count);
+        const { data, error } = await supabase
+          .from('dictionary_entries')
+          .select('id, bubi, spanish, ipa, notes, category')
+          .order('id', { ascending: true })
+          .range(randomOffset, randomOffset)
+          .single();
+
+        if (!error && data) {
+          selectedWord = data;
+        }
+      }
+    }
+
+    if (!selectedWord) {
+      return NextResponse.json({ error: 'No se pudo obtener una palabra' }, { status: 404 });
+    }
+
+    return NextResponse.json(selectedWord);
   } catch (err: any) {
-    return NextResponse.json({ error: `Error inesperado en la API: ${err.message}` }, { status: 500 });
+    logger.error('Error inesperado en /api/dictionary/random', err);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

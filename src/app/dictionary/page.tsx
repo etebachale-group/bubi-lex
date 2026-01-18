@@ -111,7 +111,11 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
       ]} />
       
       {/* Vista moderna del diccionario */}
-      <DictionaryViewModern dictionary={rows} />
+      <DictionaryViewModern 
+        dictionary={rows} 
+        initialLang={lang}
+        initialSearch={q}
+      />
     </>
   );
 }

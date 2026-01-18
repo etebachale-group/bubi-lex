@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Sparkles, RefreshCw, BookOpen, Lightbulb, Play, Pause } from "lucide-react";
+import { Volume2, Sparkles, RefreshCw, Play, Pause, AlertCircle, Clock } from "lucide-react";
 
 type DictEntry = { 
   id: number; 
@@ -11,7 +11,6 @@ type DictEntry = {
   spanish: string; 
   ipa: string | null; 
   notes: string | null;
-  category: string | null;
 };
 
 function pickSpanishVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
@@ -33,94 +32,121 @@ function speak(text: string, voice: SpeechSynthesisVoice | null) {
     } else {
       u.lang = 'es-ES';
     }
-    u.rate = 0.9;
+    u.rate = 0.85;
     u.pitch = 1.0;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
-  } catch {}
+  } catch (e) {
+    console.error('Error al reproducir audio:', e);
+  }
 }
 
-const ROTATION_INTERVAL = 10 * 60 * 1000; // 10 minutos
+const ROTATION_INTERVAL = 60 * 1000; // 1 minuto
 
 const WordOfTheDay = () => {
   const [entry, setEntry] = useState<DictEntry | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [examples, setExamples] = useState<string[]>([]);
-  const [etymology, setEtymology] = useState<string>("");
-  const [pronunciation, setPronunciation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
   const timerRef = useRef<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
-  const lastRandomIdRef = useRef<number | null>(null);
+  const usedIdsRef = useRef<Set<number>>(new Set());
 
-  const fetchWord = useCallback(async (mode: "daily" | "random") => {
+  const fetchRandomWord = useCallback(async () => {
     setIsLoading(true);
-    setExamples([]);
-    setEtymology("");
-    setPronunciation(null);
+    setError(null);
     
     try {
-      const controller = new AbortController();
-      const excludeParam = mode === 'random' && lastRandomIdRef.current 
-        ? `&excludeId=${lastRandomIdRef.current}` 
-        : '';
-      const res = await fetch(`/api/dictionary/random?mode=${mode}&t=${Date.now()}${excludeParam}`,
-        { cache: 'no-store', signal: controller.signal, headers: { 'Accept': 'application/json' } });
+      // Obtener palabra aleatoria de la base de datos
+      const res = await fetch(
+        `/api/dictionary/random?mode=random&t=${Date.now()}`,
+        { 
+          cache: 'no-store', 
+          headers: { 'Accept': 'application/json' } 
+        }
+      );
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Error desconocido' }));
+        throw new Error(errorData.error || `Error ${res.status}`);
+      }
+      
       const data = await res.json();
       
-      if (!res.ok || data?.error) {
-        if (mode === 'daily') {
-          const rf = await fetch(`/api/dictionary/random?mode=random&t=${Date.now()}`, { cache: 'no-store' });
-          const rj = await rf.json();
-          if (rf.ok && !rj.error) {
-            setEntry(rj);
-            setError(null);
-            lastRandomIdRef.current = rj.id;
-            setIsLoading(false);
-            return;
-          }
-        }
-        setError(data?.error || `Error: ${res.status} ${res.statusText}`);
-        setIsLoading(false);
+      if (!data || !data.bubi) {
+        throw new Error('No se pudo obtener una palabra válida');
+      }
+      
+      // Evitar repetir palabras recientes (últimas 20)
+      if (usedIdsRef.current.has(data.id) && usedIdsRef.current.size < 20) {
+        // Intentar obtener otra palabra
+        fetchRandomWord();
         return;
+      }
+      
+      // Agregar a la lista de usadas
+      usedIdsRef.current.add(data.id);
+      
+      // Si ya tenemos más de 20 palabras usadas, limpiar las más antiguas
+      if (usedIdsRef.current.size > 20) {
+        const idsArray = Array.from(usedIdsRef.current);
+        usedIdsRef.current = new Set(idsArray.slice(-20));
       }
       
       setEntry(data);
       setError(null);
-      if (mode === 'random') lastRandomIdRef.current = data.id;
+      setTimeLeft(60); // Reiniciar contador
     } catch (e: any) {
-      setError(`Fallo al contactar la API: ${e.message}`);
+      console.error('Error al cargar palabra:', e);
+      setError(e.message || 'Error al cargar la palabra');
+      setEntry(null);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchWord("daily");
+    // Cargar primera palabra
+    fetchRandomWord();
     
-    // Rotar palabra cada 10 minutos
-    const id = window.setInterval(() => fetchWord("random"), ROTATION_INTERVAL);
-    timerRef.current = id as unknown as number;
+    // Rotar palabra cada 1 minuto
+    const rotationTimer = window.setInterval(() => {
+      fetchRandomWord();
+    }, ROTATION_INTERVAL);
+    timerRef.current = rotationTimer as unknown as number;
+    
+    // Countdown cada segundo
+    const countdownTimer = window.setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) return 60;
+        return prev - 1;
+      });
+    }, 1000);
+    countdownRef.current = countdownTimer as unknown as number;
     
     // Configurar voces TTS
     const loadVoices = () => {
       try {
         const voices = window.speechSynthesis.getVoices();
         setTtsVoice(pickSpanishVoice(voices));
-      } catch {}
+      } catch (e) {
+        console.error('Error al cargar voces:', e);
+      }
     };
+    
     loadVoices();
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
     
     return () => { 
-      if (timerRef.current) window.clearInterval(timerRef.current); 
-      window.speechSynthesis.cancel();
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      if (countdownRef.current) window.clearInterval(countdownRef.current);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
     };
-  }, [fetchWord]);
+  }, [fetchRandomWord]);
 
   const onSpeak = useCallback(() => {
     if (!entry) return;
@@ -138,219 +164,107 @@ const WordOfTheDay = () => {
     setTimeout(() => setIsSpeaking(false), 3000);
   }, [entry, ttsVoice, isSpeaking]);
 
-  const onGenerateExamples = useCallback(async () => {
-    if (!entry || isLoadingAI) return;
-    setIsLoadingAI(true);
-    
-    try {
-      const res = await fetch('/api/ai/examples', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bubi: entry.bubi, spanish: entry.spanish, count: 3 }),
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.examples) && data.examples.length > 0) {
-          setExamples(data.examples);
-          setIsLoadingAI(false);
-          return;
-        }
-      }
-    } catch {}
-    
-    // Fallback
-    setExamples([
-      `La palabra "${entry.bubi}" significa "${entry.spanish}" en español.`,
-      `En contexto: "${entry.bubi}" se usa frecuentemente en conversaciones cotidianas.`,
-      `Ejemplo cultural: "${entry.bubi}" tiene un significado especial en la cultura Bubi.`,
-    ]);
-    setIsLoadingAI(false);
-  }, [entry, isLoadingAI]);
-
-  const onGenerateEtymology = useCallback(async () => {
-    if (!entry || isLoadingAI) return;
-    setIsLoadingAI(true);
-    
-    try {
-      const res = await fetch('/api/ai/etymology', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bubi: entry.bubi, spanish: entry.spanish }),
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        if (data.explanation) {
-          setEtymology(data.explanation);
-          setIsLoadingAI(false);
-          return;
-        }
-      }
-    } catch {}
-    
-    // Fallback
-    setEtymology(`La palabra "${entry.bubi}" (${entry.spanish}) es parte del vocabulario tradicional del pueblo Bubi de Bioko, Guinea Ecuatorial.`);
-    setIsLoadingAI(false);
-  }, [entry, isLoadingAI]);
-
-  const onGeneratePronunciation = useCallback(async () => {
-    if (!entry || isLoadingAI) return;
-    setIsLoadingAI(true);
-    
-    try {
-      const res = await fetch('/api/ai/pronunciation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bubi: entry.bubi, ipa: entry.ipa }),
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setPronunciation(data);
-        setIsLoadingAI(false);
-        return;
-      }
-    } catch {}
-    
-    // Fallback
-    setPronunciation({
-      ipa: entry.ipa || entry.bubi,
-      breakdown: `Pronunciar: ${entry.bubi}`,
-      tips: ['Pronunciar cada sílaba claramente', 'Mantener un ritmo constante']
-    });
-    setIsLoadingAI(false);
-  }, [entry, isLoadingAI]);
-
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-800 overflow-hidden relative">
+    <Card className="w-full bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-800 overflow-hidden relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
       
-      <CardHeader className="relative z-10 px-4 sm:px-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400 animate-pulse" />
-          <CardTitle className="font-headline text-xl sm:text-2xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-            Palabra del Día
-          </CardTitle>
+      <CardHeader className="relative z-10 px-4 sm:px-6 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 animate-pulse" />
+            <CardTitle className="font-headline text-lg sm:text-xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+              Palabra del Momento
+            </CardTitle>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-gray-900/50 rounded-full backdrop-blur-sm">
+            <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+              {timeLeft}s
+            </span>
+          </div>
         </div>
-        <CardDescription className="text-xs sm:text-sm">
-          Descubre una nueva palabra cada 10 minutos • Potenciado por IA
+        <CardDescription className="text-xs">
+          Nueva palabra cada minuto desde la base de datos
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="relative z-10 px-4 sm:px-6">
+      <CardContent className="relative z-10 px-4 sm:px-6 pb-4">
         {error ? (
-          <div className="text-red-500 bg-red-50 dark:bg-red-950/30 p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-800">
-            <div className="font-bold mb-1 text-sm sm:text-base">Error al cargar la palabra</div>
-            <pre className="text-xs whitespace-pre-wrap break-words">{error}</pre>
+          <div className="text-center py-6 space-y-3">
+            <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <div className="font-bold text-sm text-red-700 dark:text-red-400">Error al cargar</div>
+              </div>
+              <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+            </div>
+            <Button 
+              onClick={fetchRandomWord}
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Reintentar
+            </Button>
           </div>
         ) : entry ? (
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 animate-fade-in">
             {/* Palabra principal */}
-            <div className="text-center p-4 sm:p-6 bg-white/50 dark:bg-gray-900/50 rounded-xl backdrop-blur-sm">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline text-purple-600 dark:text-purple-400 mb-2 sm:mb-3 animate-scale-in break-words">
+            <div className="text-center p-4 bg-white/50 dark:bg-gray-900/50 rounded-xl backdrop-blur-sm">
+              <div className="text-3xl sm:text-4xl font-bold font-headline text-purple-600 dark:text-purple-400 mb-2 break-words">
                 {entry.bubi}
               </div>
-              <div className="text-xl sm:text-2xl text-pink-600 dark:text-pink-400 font-medium mb-2 break-words">
+              <div className="text-xl sm:text-2xl text-pink-600 dark:text-pink-400 font-medium break-words">
                 {entry.spanish}
               </div>
-              {entry.category && (
-                <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs sm:text-sm">
-                  {entry.category}
+              {entry.ipa && (
+                <div className="mt-2 text-sm font-mono text-muted-foreground">
+                  /{entry.ipa}/
                 </div>
               )}
             </div>
             
-            {/* Pronunciación básica con botón más visible */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg backdrop-blur-sm border-2 border-purple-200 dark:border-purple-800">
-              <div className="flex-1 text-center sm:text-left">
-                <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase mb-1 flex items-center justify-center sm:justify-start gap-2">
-                  <Volume2 className="w-4 h-4" />
-                  Escuchar Pronunciación
-                </div>
-                {entry.ipa && (
-                  <span className="text-base sm:text-lg font-mono text-foreground">/{entry.ipa}/</span>
-                )}
+            {/* Notas */}
+            {entry.notes && (
+              <div className="p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-200 dark:border-orange-800">
+                <p className="text-sm text-orange-900 dark:text-orange-100 break-words">
+                  {entry.notes}
+                </p>
               </div>
+            )}
+            
+            {/* Botones de acción */}
+            <div className="flex gap-2">
               <Button 
-                size="lg"
                 onClick={onSpeak} 
-                aria-label={isSpeaking ? "Detener" : "Escuchar pronunciación"}
-                className={`w-full sm:w-auto ${
+                className={`flex-1 ${
                   isSpeaking 
                     ? 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700' 
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
-                } text-white shadow-lg hover:shadow-xl transition-all`}
+                } text-white`}
+                disabled={!entry}
               >
                 {isSpeaking ? (
                   <>
-                    <Pause className="w-5 h-5 mr-2" />
+                    <Pause className="w-4 h-4 mr-2" />
                     Detener
                   </>
                 ) : (
                   <>
-                    <Play className="w-5 h-5 mr-2" />
+                    <Play className="w-4 h-4 mr-2" />
                     Escuchar
                   </>
                 )}
               </Button>
+              <Button 
+                onClick={fetchRandomWord}
+                variant="outline"
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
-            
-            {/* Pronunciación detallada con IA */}
-            {pronunciation && (
-              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
-                <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                  <Volume2 className="w-4 h-4" />
-                  Guía de Pronunciación
-                </div>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div className="break-words">
-                    <span className="font-semibold">IPA:</span> /{pronunciation.ipa}/
-                  </div>
-                  <div className="break-words">
-                    <span className="font-semibold">Desglose:</span> {pronunciation.breakdown}
-                  </div>
-                  {pronunciation.tips && pronunciation.tips.length > 0 && (
-                    <div>
-                      <span className="font-semibold">Consejos:</span>
-                      <ul className="list-disc list-inside mt-1 space-y-1">
-                        {pronunciation.tips.map((tip: string, i: number) => (
-                          <li key={i} className="text-muted-foreground break-words">{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Ejemplos */}
-            {examples.length > 0 && (
-              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
-                <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  Ejemplos de uso
-                </div>
-                <ul className="space-y-2">
-                  {examples.map((ex, i) => (
-                    <li key={i} className="text-xs sm:text-sm text-muted-foreground pl-3 sm:pl-4 border-l-2 border-purple-300 dark:border-purple-700 break-words">
-                      {ex}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {/* Etimología */}
-            {etymology && (
-              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
-                <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4" />
-                  Etimología y Origen
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground break-words">{etymology}</p>
-              </div>
-            )}
           </div>
         ) : (
           <div className="text-center py-8">
@@ -359,50 +273,6 @@ const WordOfTheDay = () => {
           </div>
         )}
       </CardContent>
-      
-      <CardFooter className="relative z-10 px-4 sm:px-6">
-        <div className="flex flex-col w-full gap-2">
-          <div className="flex flex-col sm:flex-row w-full gap-2">
-            <Button 
-              className="flex-1 w-full" 
-              variant="outline" 
-              onClick={() => fetchWord("random")}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Otra palabra
-            </Button>
-            <Button 
-              className="flex-1 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" 
-              onClick={onGenerateExamples}
-              disabled={!entry || isLoadingAI}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              {isLoadingAI ? 'Generando...' : 'Ejemplos IA'}
-            </Button>
-          </div>
-          <div className="flex flex-col sm:flex-row w-full gap-2">
-            <Button 
-              className="flex-1 w-full" 
-              variant="outline" 
-              onClick={onGeneratePronunciation}
-              disabled={!entry || isLoadingAI}
-            >
-              <Volume2 className="w-4 h-4 mr-2" />
-              Pronunciación
-            </Button>
-            <Button 
-              className="flex-1 w-full" 
-              variant="outline" 
-              onClick={onGenerateEtymology}
-              disabled={!entry || isLoadingAI}
-            >
-              <Lightbulb className="w-4 h-4 mr-2" />
-              Etimología
-            </Button>
-          </div>
-        </div>
-      </CardFooter>
     </Card>
   );
 };
