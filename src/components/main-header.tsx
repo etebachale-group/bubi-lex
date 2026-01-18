@@ -7,6 +7,7 @@ import { Input } from './ui/input';
 import { Search, Menu, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import AdvancedSearchModal from './advanced-search-modal';
+import { LoginModal } from './login-modal';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -14,6 +15,7 @@ interface MainHeaderProps { setSidebarOpen: (open: boolean) => void; isAdmin: bo
 
 const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const router = useRouter();
   const sessionResult = useSession?.();
   const session = sessionResult?.data;
@@ -132,7 +134,7 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
           // Usuario no autenticado - Mostrar botón de login
           <div className="flex items-center gap-2 pl-3 border-l border-border">
             <Button
-              onClick={() => router.push('/admin/login')}
+              onClick={() => setIsLoginModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
               size="sm"
             >
@@ -152,6 +154,10 @@ const MainHeader = ({ setSidebarOpen, isAdmin }: MainHeaderProps) => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSearch={handleAdvancedSearch} 
+      />
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
       />
     </header>
   );
