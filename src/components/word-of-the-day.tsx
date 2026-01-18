@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Sparkles, RefreshCw, Play, Pause, AlertCircle, Clock } from "lucide-react";
+import { Volume2, Sparkles, RefreshCw, Play, Pause, AlertCircle, Clock, BookOpen } from "lucide-react";
 
 type DictEntry = { 
   id: number; 
@@ -49,6 +49,8 @@ const WordOfTheDay = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
+  const [examples, setExamples] = useState<string[]>([]);
+  const [isLoadingExamples, setIsLoadingExamples] = useState(false);
   const timerRef = useRef<number | null>(null);
   const countdownRef = useRef<number | null>(null);
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
@@ -57,6 +59,7 @@ const WordOfTheDay = () => {
   const fetchRandomWord = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setExamples([]); // Limpiar ejemplos al cambiar palabra
     
     try {
       // Obtener palabra aleatoria de la base de datos
@@ -164,6 +167,38 @@ const WordOfTheDay = () => {
     setTimeout(() => setIsSpeaking(false), 3000);
   }, [entry, ttsVoice, isSpeaking]);
 
+  const onGenerateExamples = useCallback(async () => {
+    if (!entry || isLoadingExamples) return;
+    setIsLoadingExamples(true);
+    
+    try {
+      const res = await fetch('/api/ai/examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bubi: entry.bubi, spanish: entry.spanish, count: 3 }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.examples) && data.examples.length > 0) {
+          setExamples(data.examples);
+          setIsLoadingExamples(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error al generar ejemplos:', e);
+    }
+    
+    // Fallback con ejemplos genéricos
+    setExamples([
+      `"${entry.bubi}" significa "${entry.spanish}" en español.`,
+      `La palabra "${entry.bubi}" es parte del vocabulario cotidiano del pueblo Bubi.`,
+      `En contexto cultural, "${entry.bubi}" tiene un significado importante en la tradición Bubi.`,
+    ]);
+    setIsLoadingExamples(false);
+  }, [entry, isLoadingExamples]);
+
   return (
     <Card className="w-full bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-800 overflow-hidden relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
@@ -234,35 +269,65 @@ const WordOfTheDay = () => {
               </div>
             )}
             
+            {/* Ejemplos con IA */}
+            {examples.length > 0 && (
+              <div className="p-3 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
+                <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Ejemplos de uso
+                </div>
+                <ul className="space-y-2">
+                  {examples.map((ex, i) => (
+                    <li key={i} className="text-xs sm:text-sm text-muted-foreground pl-3 border-l-2 border-purple-300 dark:border-purple-700 break-words">
+                      {ex}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
             {/* Botones de acción */}
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={onSpeak} 
+                  className={`flex-1 ${
+                    isSpeaking 
+                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700' 
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                  } text-white`}
+                  disabled={!entry}
+                >
+                  {isSpeaking ? (
+                    <>
+                      <Pause className="w-4 h-4 mr-2" />
+                      Detener
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Escuchar
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  onClick={fetchRandomWord}
+                  variant="outline"
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              
+              {/* Botón de ejemplos con IA */}
               <Button 
-                onClick={onSpeak} 
-                className={`flex-1 ${
-                  isSpeaking 
-                    ? 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700' 
-                    : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
-                } text-white`}
-                disabled={!entry}
-              >
-                {isSpeaking ? (
-                  <>
-                    <Pause className="w-4 h-4 mr-2" />
-                    Detener
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Escuchar
-                  </>
-                )}
-              </Button>
-              <Button 
-                onClick={fetchRandomWord}
+                onClick={onGenerateExamples}
                 variant="outline"
-                disabled={isLoading}
+                className="w-full"
+                disabled={!entry || isLoadingExamples}
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <Sparkles className="w-4 h-4 mr-2" />
+                {isLoadingExamples ? 'Generando ejemplos...' : examples.length > 0 ? 'Regenerar ejemplos' : 'Generar ejemplos con IA'}
               </Button>
             </div>
           </div>
