@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,6 +14,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const params = await context.params;
     const idNum = Number(params.id);
     if (!Number.isFinite(idNum) || idNum <= 0) {
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
