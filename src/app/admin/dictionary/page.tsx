@@ -1,7 +1,6 @@
 import { getSupabase } from '@/lib/db';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { revalidatePath } from 'next/cache';
 import { BookOpen, Plus, ArrowLeft, Trash2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
@@ -33,15 +32,6 @@ export default async function AdminDictionaryPage() {
   }
 
   const rows = await getEntries();
-
-  async function deleteAction(id: number) {
-    'use server';
-    const supabase = getSupabase();
-    await supabase.from('dictionary_entries').delete().eq('id', id);
-    revalidatePath('/admin/dictionary');
-    revalidatePath('/dictionary');
-    redirect('/admin/dictionary');
-  }
 
   return (
     <div className="container mx-auto py-8 px-4 animate-fade-in">
@@ -120,7 +110,7 @@ export default async function AdminDictionaryPage() {
           </Button>
         </div>
       ) : (
-        <DictionaryList entries={rows} onDelete={deleteAction} />
+        <DictionaryList entries={rows} />
       )}
     </div>
   );

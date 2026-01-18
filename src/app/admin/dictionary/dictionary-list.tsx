@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Edit, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
 
 interface DictionaryEntry {
   id: number;
@@ -17,11 +18,12 @@ interface DictionaryEntry {
 
 interface DictionaryListProps {
   entries: DictionaryEntry[];
-  onDelete: (id: number) => Promise<void>;
 }
 
-export default function DictionaryList({ entries, onDelete }: DictionaryListProps) {
+export default function DictionaryList({ entries }: DictionaryListProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const filteredEntries = entries.filter(entry => {
     const query = searchQuery.toLowerCase();
@@ -32,8 +34,27 @@ export default function DictionaryList({ entries, onDelete }: DictionaryListProp
   });
 
   const handleDelete = async (id: number, bubi: string) => {
-    if (confirm(`¿Eliminar "${bubi}"?`)) {
-      await onDelete(id);
+    if (!confirm(`¿Eliminar "${bubi}"?`)) {
+      return;
+    }
+
+    setDeleting(id);
+    try {
+      const res = await fetch(`/api/admin/dictionary/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al eliminar');
+      }
+
+      // Recargar la página para actualizar la lista
+      router.refresh();
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -100,9 +121,11 @@ export default function DictionaryList({ entries, onDelete }: DictionaryListProp
                     size="sm" 
                     variant="destructive" 
                     onClick={() => handleDelete(entry.id, entry.bubi)}
+                    disabled={deleting === entry.id}
                     className="gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
+                    {deleting === entry.id && <span className="text-xs">...</span>}
                   </Button>
                 </div>
               </CardContent>
