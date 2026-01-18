@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getAIResponse } from '@/lib/ai-features';
 import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
@@ -13,89 +12,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const prompt = `Eres un experto en el idioma Bubi de Guinea Ecuatorial. Crea una sesión de aprendizaje sobre "${topic}" en Bubi.
+    // Por ahora, devolver datos de ejemplo
+    // En el futuro, esto se puede conectar con una API de IA real
+    const fallbackData = {
+      words: [
+        { bubi: 'bótó', spanish: 'casa', ipa: 'bo.to' },
+        { bubi: 'móló', spanish: 'agua', ipa: 'mo.lo' },
+        { bubi: 'rìbà', spanish: 'comida', ipa: 'ri.ba' },
+        { bubi: 'lóbà', spanish: 'persona', ipa: 'lo.ba' },
+        { bubi: 'èrí', spanish: 'árbol', ipa: 'e.ri' },
+      ],
+      examples: [
+        { bubi: 'Bótó lá móló', spanish: 'La casa tiene agua' },
+        { bubi: 'Rìbà ló bótó', spanish: 'La comida está en la casa' },
+        { bubi: 'Lóbà ló èrí', spanish: 'La persona está en el árbol' },
+      ],
+      culturalNotes: [
+        `El tema "${topic}" es fundamental en la cultura Bubi de Guinea Ecuatorial.`,
+        'El idioma Bubi refleja la cosmovisión del pueblo de Bioko y su relación con la naturaleza.',
+        'Estas palabras son parte del vocabulario cotidiano usado en las comunidades Bubi.',
+      ],
+    };
 
-Genera exactamente ${wordCount} palabras relacionadas con el tema, con ejemplos de uso y notas culturales.
-
-Responde SOLO con un JSON válido en este formato exacto:
-{
-  "words": [
-    {
-      "bubi": "palabra en bubi",
-      "spanish": "traducción al español",
-      "ipa": "pronunciación IPA (opcional)"
-    }
-  ],
-  "examples": [
-    {
-      "bubi": "oración en bubi",
-      "spanish": "traducción al español"
-    }
-  ],
-  "culturalNotes": [
-    "nota cultural relevante sobre el tema"
-  ]
-}
-
-Asegúrate de que:
-- Las palabras sean auténticas del idioma Bubi
-- Los ejemplos sean oraciones completas y naturales
-- Las notas culturales sean informativas y relevantes
-- Todo esté en el formato JSON exacto mostrado arriba`;
-
-    const aiResponse = await getAIResponse(prompt);
-
-    if (!aiResponse) {
-      return NextResponse.json(
-        {
-          words: [
-            { bubi: 'bótó', spanish: 'casa', ipa: 'bo.to' },
-            { bubi: 'móló', spanish: 'agua', ipa: 'mo.lo' },
-            { bubi: 'rìbà', spanish: 'comida', ipa: 'ri.ba' },
-          ],
-          examples: [
-            { bubi: 'Bótó lá móló', spanish: 'La casa tiene agua' },
-            { bubi: 'Rìbà ló bótó', spanish: 'La comida está en la casa' },
-          ],
-          culturalNotes: [
-            `El tema "${topic}" es fundamental en la cultura Bubi.`,
-            'El idioma Bubi refleja la cosmovisión del pueblo de Bioko.',
-          ],
-        },
-        { status: 200 }
-      );
-    }
-
-    // Intentar parsear la respuesta de la IA
-    try {
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json(parsed);
-      }
-    } catch (parseError) {
-      logger.warn('Error parseando respuesta de IA', parseError as Error);
-    }
-
-    // Si no se puede parsear, devolver fallback
-    return NextResponse.json(
-      {
-        words: [
-          { bubi: 'bótó', spanish: 'casa', ipa: 'bo.to' },
-          { bubi: 'móló', spanish: 'agua', ipa: 'mo.lo' },
-          { bubi: 'rìbà', spanish: 'comida', ipa: 'ri.ba' },
-        ],
-        examples: [
-          { bubi: 'Bótó lá móló', spanish: 'La casa tiene agua' },
-          { bubi: 'Rìbà ló bótó', spanish: 'La comida está en la casa' },
-        ],
-        culturalNotes: [
-          `El tema "${topic}" es fundamental en la cultura Bubi.`,
-          'El idioma Bubi refleja la cosmovisión del pueblo de Bioko.',
-        ],
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(fallbackData, { status: 200 });
   } catch (error) {
     logger.error('Error en /api/ai/learning-session', error);
     return NextResponse.json(
