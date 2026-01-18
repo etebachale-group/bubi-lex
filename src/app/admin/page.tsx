@@ -1,16 +1,11 @@
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   BookOpen, 
   Newspaper, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  FileText,
-  Sparkles,
   Shield,
-  Database,
-  TrendingUp
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
@@ -49,7 +44,7 @@ export default async function AdminPage() {
       href: '/admin/dictionary',
       icon: BookOpen,
       color: 'from-blue-500 to-cyan-500',
-      stats: 'Gestión completa'
+      count: wordsCount || 0
     },
     {
       title: 'Noticias',
@@ -57,23 +52,7 @@ export default async function AdminPage() {
       href: '/admin/news',
       icon: Newspaper,
       color: 'from-purple-500 to-pink-500',
-      stats: 'Publicaciones'
-    },
-    {
-      title: 'Colaboradores',
-      description: 'Gestionar usuarios colaboradores',
-      href: '/admin/collaborators',
-      icon: Users,
-      color: 'from-green-500 to-emerald-500',
-      stats: 'Permisos'
-    },
-    {
-      title: 'Funcionalidades IA',
-      description: 'Configurar y monitorear IA',
-      href: '/ai-features',
-      icon: Sparkles,
-      color: 'from-orange-500 to-red-500',
-      stats: 'Groq activo'
+      count: newsCount || 0
     },
     {
       title: 'Logs de Auditoría',
@@ -81,129 +60,90 @@ export default async function AdminPage() {
       href: '/admin/audit',
       icon: Shield,
       color: 'from-green-500 to-emerald-500',
-      stats: 'Seguridad'
+      count: null
     },
     {
-      title: 'Estadísticas',
-      description: 'Métricas y análisis del sitio',
-      href: '/admin/stats',
-      icon: BarChart3,
-      color: 'from-indigo-500 to-purple-500',
-      stats: 'Próximamente'
-    },
-    {
-      title: 'Base de Datos',
-      description: 'Gestión de datos y backups',
-      href: '/admin/database',
-      icon: Database,
-      color: 'from-teal-500 to-cyan-500',
-      stats: 'Próximamente'
+      title: 'Funcionalidades IA',
+      description: 'Probar características de IA',
+      href: '/ai-features',
+      icon: Sparkles,
+      color: 'from-orange-500 to-red-500',
+      count: null
     }
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4 animate-fade-in">
+    <div className="container mx-auto py-8 px-4 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-4">
           <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
-            <Settings className="w-8 h-8 text-white" />
+            <Shield className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-headline font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
               Panel de Administración
             </h1>
-            <p className="text-muted-foreground">Gestiona todos los aspectos de BubiLex</p>
+            <p className="text-muted-foreground text-sm md:text-base">
+              Bienvenido, {session.user?.name || session.user?.email}
+            </p>
           </div>
         </div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium">
-          <Shield className="w-4 h-4" />
-          Administrador
-        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <Card className="border-2 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Palabras</p>
-                <p className="text-2xl font-bold">{wordsCount || 0}</p>
+                <p className="text-sm text-muted-foreground mb-1">Palabras en el Diccionario</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{wordsCount || 0}</p>
               </div>
-              <BookOpen className="w-8 h-8 text-blue-500" />
+              <BookOpen className="w-12 h-12 text-blue-500 opacity-50" />
             </div>
           </CardContent>
         </Card>
-        <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all">
+        
+        <Card className="border-2 border-purple-200 dark:border-purple-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Noticias</p>
-                <p className="text-2xl font-bold">{newsCount || 0}</p>
+                <p className="text-sm text-muted-foreground mb-1">Noticias Publicadas</p>
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{newsCount || 0}</p>
               </div>
-              <Newspaper className="w-8 h-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Visitas Hoy</p>
-                <p className="text-2xl font-bold">-</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">IA Requests</p>
-                <p className="text-2xl font-bold">-</p>
-              </div>
-              <Sparkles className="w-8 h-8 text-orange-500" />
+              <Newspaper className="w-12 h-12 text-purple-500 opacity-50" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Admin Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {adminSections.map((section, index) => {
+      {/* Main Actions */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold mb-4">Gestión de Contenido</h2>
+        
+        {adminSections.map((section) => {
           const Icon = section.icon;
           return (
-            <Link 
-              key={section.href} 
-              href={section.href}
-              className="group"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all hover:scale-105 hover:shadow-xl h-full">
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${section.color} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
+            <Link key={section.href} href={section.href}>
+              <Card className="border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all hover:shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${section.color}`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1">{section.title}</h3>
+                        <p className="text-sm text-muted-foreground">{section.description}</p>
+                        {section.count !== null && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {section.count} {section.count === 1 ? 'entrada' : 'entradas'}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-                      {section.stats}
-                    </span>
-                  </div>
-                  <CardTitle className="text-xl group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    {section.title}
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    {section.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-purple-600 dark:text-purple-400 font-medium">
-                    Acceder
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <ArrowRight className="w-6 h-6 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -212,42 +152,22 @@ export default async function AdminPage() {
         })}
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-headline font-bold mb-4">Acciones Rápidas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link href="/admin/dictionary">
-            <Card className="glass-card border-2 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:scale-105">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Agregar Palabra</p>
-                    <p className="text-sm text-muted-foreground">Nueva entrada al diccionario</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/news">
-            <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all hover:scale-105">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
-                    <Newspaper className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Publicar Noticia</p>
-                    <p className="text-sm text-muted-foreground">Crear nueva publicación</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </div>
+      {/* Info */}
+      <Card className="mt-8 border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+            <div>
+              <p className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                Acceso de Administrador
+              </p>
+              <p className="text-sm text-green-800 dark:text-green-200">
+                Tienes permisos completos para gestionar todo el contenido de BubiLex.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
