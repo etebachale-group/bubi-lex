@@ -1,5 +1,5 @@
 import WordOfTheDay from "@/components/word-of-the-day";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Newspaper, Sparkles, Brain, Target, Trophy } from "lucide-react";
