@@ -1,10 +1,9 @@
 import { Metadata } from 'next';
 import Breadcrumbs from '@/components/breadcrumbs';
 import StructuredData from '@/components/seo/structured-data';
-import AITranslator from '@/components/ai/ai-translator';
-import PracticeQuiz from '@/components/ai/practice-quiz';
+import LearningSystem from '@/components/ai/learning-system';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Brain, BookOpen, Mic, Lightbulb } from 'lucide-react';
+import { Sparkles, Brain, BookOpen, Target, Zap, Trophy } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Funcionalidades con IA | BubiLex',
@@ -44,87 +43,82 @@ export default function AIFeaturesPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="hover-lift">
+        <Card className="hover-lift border-2 border-purple-200 dark:border-purple-800">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              <CardTitle>Traductor Contextual</CardTitle>
+              <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <CardTitle>Sesiones de Aprendizaje</CardTitle>
             </div>
             <CardDescription>
-              Traducciones que consideran el contexto cultural
+              Lecciones personalizadas con vocabulario y ejemplos
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <Card className="hover-lift">
+        <Card className="hover-lift border-2 border-blue-200 dark:border-blue-800">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Brain className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-              <CardTitle>Quiz Inteligente</CardTitle>
+              <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <CardTitle>Quiz Interactivo</CardTitle>
             </div>
             <CardDescription>
-              Preguntas generadas automáticamente
+              Preguntas adaptativas generadas por IA
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <Card className="hover-lift">
-          <CardHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <Mic className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <CardTitle>Guía de Pronunciación</CardTitle>
-            </div>
-            <CardDescription>
-              Consejos personalizados de pronunciación
-            </CardDescription>
-          </CardHeader>
-        </Card>
-
-        <Card className="hover-lift">
+        <Card className="hover-lift border-2 border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
               <BookOpen className="w-6 h-6 text-green-600 dark:text-green-400" />
               <CardTitle>Ejemplos Contextuales</CardTitle>
             </div>
             <CardDescription>
-              Frases de ejemplo culturalmente apropiadas
+              Oraciones reales con contexto cultural
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <Card className="hover-lift">
+        <Card className="hover-lift border-2 border-orange-200 dark:border-orange-800">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-              <CardTitle>Etimología</CardTitle>
+              <Sparkles className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <CardTitle>Notas Culturales</CardTitle>
             </div>
             <CardDescription>
-              Origen y significado cultural de palabras
+              Contexto histórico y significado cultural
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <Card className="hover-lift">
+        <Card className="hover-lift border-2 border-yellow-200 dark:border-yellow-800">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              <CardTitle>Palabras Relacionadas</CardTitle>
+              <Zap className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+              <CardTitle>Aprendizaje Adaptativo</CardTitle>
             </div>
             <CardDescription>
-              Sugerencias de vocabulario relacionado
+              Contenido ajustado a tu nivel y progreso
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card className="hover-lift border-2 border-pink-200 dark:border-pink-800">
+          <CardHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+              <CardTitle>Sistema de Puntuación</CardTitle>
+            </div>
+            <CardDescription>
+              Sigue tu progreso y logros
             </CardDescription>
           </CardHeader>
         </Card>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="animate-fade-in-up">
-          <AITranslator />
-        </div>
-        
-        <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-          <PracticeQuiz />
-        </div>
+      {/* Sistema de Aprendizaje Principal */}
+      <div className="animate-fade-in-up">
+        <LearningSystem />
       </div>
 
       <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-2 border-purple-200 dark:border-purple-800">
