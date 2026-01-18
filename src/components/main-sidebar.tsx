@@ -2,19 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Book, Newspaper, User, X, Sparkles } from 'lucide-react';
+import { Home, Book, Newspaper, User, X, Sparkles, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
+import { useSession } from 'next-auth/react';
 import React from 'react';
-
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/dictionary', label: 'Diccionario', icon: Book },
-  { href: '/news', label: 'Noticias', icon: Newspaper },
-  { href: '/ai-features', label: 'IA', icon: Sparkles, badge: 'Nuevo' },
-  { href: '/admin', label: 'Admin', icon: User },
-];
 
 interface MainSidebarProps {
   sidebarOpen: boolean;
@@ -23,14 +16,51 @@ interface MainSidebarProps {
 
 const SidebarContent = ({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => void }) => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = (session as any)?.isAdmin;
+  const canEditDictionary = (session as any)?.canEditDictionary;
+  
   const handleLinkClick = () => {
     setSidebarOpen(false);
   };
 
+  // Enlaces base para todos los usuarios
+  const baseNavItems = [
+    { href: '/', label: 'Inicio', icon: Home },
+    { href: '/dictionary', label: 'Diccionario', icon: Book },
+    { href: '/news', label: 'Noticias', icon: Newspaper },
+    { href: '/ai-features', label: 'IA', icon: Sparkles, badge: 'Nuevo' },
+  ];
+
+  // Enlaces adicionales según el rol
+  const roleNavItems = [];
+  
+  if (canEditDictionary && !isAdmin) {
+    roleNavItems.push({ 
+      href: '/collaborator', 
+      label: 'Panel Colaborador', 
+      icon: Users,
+      badge: 'Colaborador'
+    });
+  }
+  
+  if (isAdmin) {
+    roleNavItems.push({ 
+      href: '/admin', 
+      label: 'Panel Admin', 
+      icon: Shield,
+      badge: 'Admin'
+    });
+  }
+
+  const navItems = [...baseNavItems, ...roleNavItems];
+
   return (
     <>
       <div className="flex justify-between items-center mb-8">
-        <div className="text-2xl font-headline font-bold">BubiLex</div>
+        <div className="text-2xl font-headline font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+          BubiLex
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -42,24 +72,34 @@ const SidebarContent = ({ setSidebarOpen }: { setSidebarOpen: (open: boolean) =>
         </Button>
       </div>
       <nav>
-        <ul>
+        <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
                 onClick={handleLinkClick}
                 className={cn(
-                  'flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-muted',
-                  pathname === item.href ? 'bg-primary text-primary-foreground' : ''
+                  'flex items-center justify-between p-3 rounded-lg transition-all hover:bg-muted group',
+                  pathname === item.href 
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                    : 'hover:shadow-md'
                 )}
                 aria-current={pathname === item.href ? 'page' : undefined}
               >
                 <div className="flex items-center">
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.label}
+                  <item.icon className={cn(
+                    "w-5 h-5 mr-3 transition-transform group-hover:scale-110",
+                    pathname === item.href ? "text-white" : ""
+                  )} />
+                  <span className="font-medium">{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full">
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full font-semibold",
+                    pathname === item.href 
+                      ? "bg-white/20 text-white" 
+                      : "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                  )}>
                     {item.badge}
                   </span>
                 )}
