@@ -9,12 +9,19 @@ import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminLoginPage({ searchParams }: { searchParams: { next?: string; error?: string } }) {
+export default async function AdminLoginPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ next?: string; error?: string }> 
+}) {
+  const params = await searchParams;
   const session = await getServerSession(authOptions);
-  const next = searchParams?.next || '/admin';
+  const next = params?.next || '/admin';
+  
   if (session && (session as any).isAdmin) {
     redirect(next.startsWith('/admin') ? next : '/admin');
   }
+  
   const notAuthorized = session && !(session as any).isAdmin;
   
   return (
