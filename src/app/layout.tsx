@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 import MainLayout from "@/components/main-layout";
 import "./globals.css";
 import { Playfair_Display, PT_Sans } from "next/font/google";
@@ -83,14 +83,9 @@ export default async function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${ptSans.className} ${playfair.variable} font-body bg-background`}>
         <a href="#main" className="skip-link">Saltar al contenido principal</a>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <Providers>
           <MainLayout isAdmin={isAdmin}>{children}</MainLayout>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

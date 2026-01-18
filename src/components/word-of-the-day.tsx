@@ -223,60 +223,60 @@ const WordOfTheDay = () => {
   }, [entry, isLoadingAI]);
 
   return (
-    <Card className="w-full max-w-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-800 overflow-hidden relative">
+    <Card className="w-full max-w-4xl mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-800 overflow-hidden relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
       
-      <CardHeader className="relative z-10">
+      <CardHeader className="relative z-10 px-4 sm:px-6">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400 animate-pulse" />
-          <CardTitle className="font-headline text-2xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400 animate-pulse" />
+          <CardTitle className="font-headline text-xl sm:text-2xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
             Palabra del Día
           </CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Descubre una nueva palabra cada 10 minutos • Potenciado por IA
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="relative z-10">
+      <CardContent className="relative z-10 px-4 sm:px-6">
         {error ? (
-          <div className="text-red-500 bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-800">
-            <div className="font-bold mb-1">Error al cargar la palabra</div>
-            <pre className="text-xs whitespace-pre-wrap">{error}</pre>
+          <div className="text-red-500 bg-red-50 dark:bg-red-950/30 p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="font-bold mb-1 text-sm sm:text-base">Error al cargar la palabra</div>
+            <pre className="text-xs whitespace-pre-wrap break-words">{error}</pre>
           </div>
         ) : entry ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Palabra principal */}
-            <div className="text-center p-6 bg-white/50 dark:bg-gray-900/50 rounded-xl backdrop-blur-sm">
-              <div className="text-5xl font-bold font-headline text-purple-600 dark:text-purple-400 mb-3 animate-scale-in">
+            <div className="text-center p-4 sm:p-6 bg-white/50 dark:bg-gray-900/50 rounded-xl backdrop-blur-sm">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline text-purple-600 dark:text-purple-400 mb-2 sm:mb-3 animate-scale-in break-words">
                 {entry.bubi}
               </div>
-              <div className="text-2xl text-pink-600 dark:text-pink-400 font-medium mb-2">
+              <div className="text-xl sm:text-2xl text-pink-600 dark:text-pink-400 font-medium mb-2 break-words">
                 {entry.spanish}
               </div>
               {entry.category && (
-                <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
+                <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs sm:text-sm">
                   {entry.category}
                 </div>
               )}
             </div>
             
             {/* Pronunciación básica con botón más visible */}
-            <div className="flex items-center justify-between gap-3 p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg backdrop-blur-sm border-2 border-purple-200 dark:border-purple-800">
-              <div className="flex-1">
-                <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase mb-1 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg backdrop-blur-sm border-2 border-purple-200 dark:border-purple-800">
+              <div className="flex-1 text-center sm:text-left">
+                <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase mb-1 flex items-center justify-center sm:justify-start gap-2">
                   <Volume2 className="w-4 h-4" />
                   Escuchar Pronunciación
                 </div>
                 {entry.ipa && (
-                  <span className="text-lg font-mono text-foreground">/{entry.ipa}/</span>
+                  <span className="text-base sm:text-lg font-mono text-foreground">/{entry.ipa}/</span>
                 )}
               </div>
               <Button 
                 size="lg"
                 onClick={onSpeak} 
                 aria-label={isSpeaking ? "Detener" : "Escuchar pronunciación"}
-                className={`${
+                className={`w-full sm:w-auto ${
                   isSpeaking 
                     ? 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700' 
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
@@ -298,16 +298,16 @@ const WordOfTheDay = () => {
             
             {/* Pronunciación detallada con IA */}
             {pronunciation && (
-              <div className="p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
+              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
                 <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
                   <Volume2 className="w-4 h-4" />
                   Guía de Pronunciación
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div>
+                <div className="space-y-2 text-xs sm:text-sm">
+                  <div className="break-words">
                     <span className="font-semibold">IPA:</span> /{pronunciation.ipa}/
                   </div>
-                  <div>
+                  <div className="break-words">
                     <span className="font-semibold">Desglose:</span> {pronunciation.breakdown}
                   </div>
                   {pronunciation.tips && pronunciation.tips.length > 0 && (
@@ -315,7 +315,7 @@ const WordOfTheDay = () => {
                       <span className="font-semibold">Consejos:</span>
                       <ul className="list-disc list-inside mt-1 space-y-1">
                         {pronunciation.tips.map((tip: string, i: number) => (
-                          <li key={i} className="text-muted-foreground">{tip}</li>
+                          <li key={i} className="text-muted-foreground break-words">{tip}</li>
                         ))}
                       </ul>
                     </div>
@@ -326,14 +326,14 @@ const WordOfTheDay = () => {
             
             {/* Ejemplos */}
             {examples.length > 0 && (
-              <div className="p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
+              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
                 <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
                   Ejemplos de uso
                 </div>
                 <ul className="space-y-2">
                   {examples.map((ex, i) => (
-                    <li key={i} className="text-sm text-muted-foreground pl-4 border-l-2 border-purple-300 dark:border-purple-700">
+                    <li key={i} className="text-xs sm:text-sm text-muted-foreground pl-3 sm:pl-4 border-l-2 border-purple-300 dark:border-purple-700 break-words">
                       {ex}
                     </li>
                   ))}
@@ -343,12 +343,12 @@ const WordOfTheDay = () => {
             
             {/* Etimología */}
             {etymology && (
-              <div className="p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
+              <div className="p-3 sm:p-4 bg-white/50 dark:bg-gray-900/50 rounded-lg backdrop-blur-sm animate-fade-in">
                 <div className="font-bold text-sm mb-2 text-purple-600 dark:text-purple-400 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4" />
                   Etimología y Origen
                 </div>
-                <p className="text-sm text-muted-foreground">{etymology}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground break-words">{etymology}</p>
               </div>
             )}
           </div>
@@ -360,11 +360,11 @@ const WordOfTheDay = () => {
         )}
       </CardContent>
       
-      <CardFooter className="relative z-10">
+      <CardFooter className="relative z-10 px-4 sm:px-6">
         <div className="flex flex-col w-full gap-2">
-          <div className="flex w-full gap-2">
+          <div className="flex flex-col sm:flex-row w-full gap-2">
             <Button 
-              className="flex-1" 
+              className="flex-1 w-full" 
               variant="outline" 
               onClick={() => fetchWord("random")}
               disabled={isLoading}
@@ -373,7 +373,7 @@ const WordOfTheDay = () => {
               Otra palabra
             </Button>
             <Button 
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" 
+              className="flex-1 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" 
               onClick={onGenerateExamples}
               disabled={!entry || isLoadingAI}
             >
@@ -381,9 +381,9 @@ const WordOfTheDay = () => {
               {isLoadingAI ? 'Generando...' : 'Ejemplos IA'}
             </Button>
           </div>
-          <div className="flex w-full gap-2">
+          <div className="flex flex-col sm:flex-row w-full gap-2">
             <Button 
-              className="flex-1" 
+              className="flex-1 w-full" 
               variant="outline" 
               onClick={onGeneratePronunciation}
               disabled={!entry || isLoadingAI}
@@ -392,7 +392,7 @@ const WordOfTheDay = () => {
               Pronunciación
             </Button>
             <Button 
-              className="flex-1" 
+              className="flex-1 w-full" 
               variant="outline" 
               onClick={onGenerateEtymology}
               disabled={!entry || isLoadingAI}
