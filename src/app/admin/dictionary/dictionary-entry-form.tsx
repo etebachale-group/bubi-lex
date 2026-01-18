@@ -74,9 +74,22 @@ export default function DictionaryEntryForm({ mode, id, initial, onSaved }: Dict
       } else {
         res = await fetch('/api/dictionary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
       }
+      
       if (!res.ok) {
-        throw new Error('Error guardando');
+        const errorData = await res.json();
+        
+        // Manejar error de duplicado específicamente
+        if (res.status === 409) {
+          const duplicate = errorData.duplicate;
+          throw new Error(
+            `Ya existe una entrada con la palabra "${duplicate?.bubi}". ` +
+            `ID: ${duplicate?.id}, Español: "${duplicate?.spanish}"`
+          );
+        }
+        
+        throw new Error(errorData.error || 'Error guardando');
       }
+      
       const json = await res.json();
       if (onSaved) onSaved(json.id ?? id!);
     } catch (err: any) {

@@ -10,8 +10,8 @@ const NewsUpdateSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(255, 'El título es demasiado largo'),
   content: z.string().min(1, 'El contenido es requerido'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
-  image: z.string().url('URL de imagen inválida').max(512).optional().nullable(),
-  video: z.string().url('URL de video inválida').max(512).optional().nullable(),
+  image: z.string().url('URL de imagen inválida').max(512).optional().nullable().or(z.literal('')),
+  video: z.string().url('URL de video inválida').max(512).optional().nullable().or(z.literal('')),
 });
 
 export async function PUT(

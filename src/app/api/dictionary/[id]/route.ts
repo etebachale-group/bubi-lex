@@ -64,6 +64,22 @@ export async function PUT(
     
     const { bubi, spanish, ipa, notes } = parsed.data;
     const supabase = getSupabase();
+    
+    // Verificar si ya existe otra entrada con la misma palabra en bubi (excluyendo la actual)
+    const { data: existing } = await supabase
+      .from('dictionary_entries')
+      .select('id, bubi, spanish')
+      .eq('bubi', bubi)
+      .neq('id', idNum)
+      .limit(1);
+    
+    if (existing && existing.length > 0) {
+      return NextResponse.json({ 
+        error: 'Ya existe otra entrada con esta palabra en bubi',
+        duplicate: existing[0]
+      }, { status: 409 });
+    }
+    
     const { data, error } = await supabase
       .from('dictionary_entries')
       .update({ 

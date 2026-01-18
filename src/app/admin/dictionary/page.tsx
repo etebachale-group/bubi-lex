@@ -55,12 +55,25 @@ export default async function AdminDictionaryPage() {
               <p className="text-muted-foreground">Administra todas las palabras</p>
             </div>
           </div>
-          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
-            <Link href="/admin/dictionary/edit/new" className="gap-2">
-              <Plus className="w-5 h-5" />
-              Añadir Palabra
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              asChild 
+              size="lg" 
+              variant="outline"
+              className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+            >
+              <Link href="/admin/dictionary/duplicates" className="gap-2">
+                <Trash2 className="w-5 h-5" />
+                Limpiar Duplicados
+              </Link>
+            </Button>
+            <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+              <Link href="/admin/dictionary/edit/new" className="gap-2">
+                <Plus className="w-5 h-5" />
+                Añadir Palabra
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
