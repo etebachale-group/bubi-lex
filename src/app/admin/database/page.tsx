@@ -36,18 +36,14 @@ export default function DatabasePage() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // En producción, esto debería llamar a un endpoint API
-      // GET /api/admin/database/stats
+      const res = await fetch('/api/admin/database/stats');
+      if (!res.ok) throw new Error('Error al cargar estadísticas');
       
-      // Simulación temporal
-      setStats({
-        dictionaryCount: 1234,
-        newsCount: 45,
-        auditCount: 892,
-        eventsCount: 2341
-      });
+      const data = await res.json();
+      setStats(data);
     } catch (err) {
       console.error('Error al cargar estadísticas:', err);
+      // Mantener valores por defecto en caso de error
     } finally {
       setLoading(false);
     }

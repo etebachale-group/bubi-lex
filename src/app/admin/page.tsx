@@ -15,6 +15,7 @@ import {
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { redirect } from 'next/navigation';
+import { getSupabase } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,16 @@ export default async function AdminPage() {
     // Si no está autenticado o es usuario normal
     redirect('/admin/login?next=/admin');
   }
+
+  // Obtener estadísticas reales
+  const supabase = getSupabase();
+  const [
+    { count: wordsCount },
+    { count: newsCount }
+  ] = await Promise.all([
+    supabase.from('dictionary_entries').select('*', { count: 'exact', head: true }),
+    supabase.from('news').select('*', { count: 'exact', head: true })
+  ]);
   
   const adminSections = [
     {
@@ -118,7 +129,7 @@ export default async function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Palabras</p>
-                <p className="text-2xl font-bold">1,234</p>
+                <p className="text-2xl font-bold">{wordsCount || 0}</p>
               </div>
               <BookOpen className="w-8 h-8 text-blue-500" />
             </div>
@@ -129,7 +140,7 @@ export default async function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Noticias</p>
-                <p className="text-2xl font-bold">45</p>
+                <p className="text-2xl font-bold">{newsCount || 0}</p>
               </div>
               <Newspaper className="w-8 h-8 text-purple-500" />
             </div>
@@ -140,7 +151,7 @@ export default async function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Visitas Hoy</p>
-                <p className="text-2xl font-bold">892</p>
+                <p className="text-2xl font-bold">-</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
             </div>
@@ -151,7 +162,7 @@ export default async function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">IA Requests</p>
-                <p className="text-2xl font-bold">156</p>
+                <p className="text-2xl font-bold">-</p>
               </div>
               <Sparkles className="w-8 h-8 text-orange-500" />
             </div>

@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Users, UserPlus, Shield, Edit, Trash2, RefreshCw } from 'lucide-react';
-import { getSupabase } from '@/lib/db';
 
 interface Collaborator {
   email: string;
@@ -23,43 +22,16 @@ export default function CollaboratorsPage() {
   const fetchCollaborators = async () => {
     setLoading(true);
     try {
-      const supabase = getSupabase();
+      // Llamar a un endpoint API en lugar de usar getSupabase directamente
+      const res = await fetch('/api/admin/collaborators');
+      if (!res.ok) throw new Error('Error al cargar colaboradores');
       
-      // Obtener todos los usuarios que han contribuido
-      const { data, error } = await supabase
-        .from('dictionary_entries')
-        .select('created_by, updated_by, created_at')
-        .or('created_by.not.is.null,updated_by.not.is.null');
-
-      if (error) throw error;
-
-      // Agrupar por email y contar contribuciones
-      const emailMap = new Map<string, { count: number; lastDate: string }>();
-      
-      data?.forEach(entry => {
-        const emails = [entry.created_by, entry.updated_by].filter(Boolean);
-        emails.forEach(email => {
-          if (email) {
-            const current = emailMap.get(email) || { count: 0, lastDate: entry.created_at };
-            emailMap.set(email, {
-              count: current.count + 1,
-              lastDate: entry.created_at > current.lastDate ? entry.created_at : current.lastDate
-            });
-          }
-        });
-      });
-
-      // Convertir a array y determinar roles (esto es simplificado, idealmente vendría de una tabla de roles)
-      const collabList: Collaborator[] = Array.from(emailMap.entries()).map(([email, stats]) => ({
-        email,
-        role: 'collaborator', // Por defecto, en producción esto vendría de una tabla
-        wordCount: stats.count,
-        lastContribution: stats.lastDate
-      }));
-
-      setCollaborators(collabList.sort((a, b) => b.wordCount - a.wordCount));
+      const data = await res.json();
+      setCollaborators(data.collaborators || []);
     } catch (err) {
       console.error('Error al cargar colaboradores:', err);
+      // Datos de ejemplo mientras se implementa el endpoint
+      setCollaborators([]);
     } finally {
       setLoading(false);
     }
