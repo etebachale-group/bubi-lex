@@ -22,15 +22,24 @@ const ptSans = PT_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "BubiLex - Diccionario Bubi-Español",
-  description: "Diccionario Bubi-Español y Archivo Cultural",
+  title: {
+    default: "BubiLex - Diccionario Bubi-Español",
+    template: "%s | BubiLex"
+  },
+  description: "Diccionario Bubi-Español y Archivo Cultural. Preservando la lengua y cultura del pueblo Bubi de Guinea Ecuatorial.",
   keywords: [
     "Diccionario Bubi",
     "Lengua Bubi",
     "Cultura Bubi",
     "Bubi Español",
     "Pueblo Bubi",
+    "Guinea Ecuatorial",
+    "Bioko",
+    "Idioma Bubi",
   ],
+  authors: [{ name: "BubiLex" }],
+  creator: "BubiLex",
+  publisher: "BubiLex",
   alternates: {
     canonical: "/",
   },
@@ -40,25 +49,34 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_ES",
     title: "BubiLex - Diccionario Bubi-Español",
-    description: "Diccionario Bubi-Español y Archivo Cultural",
+    description: "Diccionario Bubi-Español y Archivo Cultural. Preservando la lengua y cultura del pueblo Bubi.",
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'BubiLex - Diccionario Bubi-Español',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "BubiLex - Diccionario Bubi-Español",
     description: "Diccionario Bubi-Español y Archivo Cultural",
+    images: ['/opengraph-image'],
   },
   icons: {
     icon: [
-      { url: '/img/logo.png', type: 'image/png' },
-      { url: '/favicon.ico' },
+      { url: '/icon', sizes: '32x32', type: 'image/png' },
+      { url: '/img/logo.svg', type: 'image/svg+xml' },
+      { url: '/img/logo.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: '/img/logo.png', type: 'image/png' },
+      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
     ],
-    shortcut: [
-      { url: '/img/logo.png', type: 'image/png' },
-    ],
+    shortcut: ['/icon'],
   },
+  manifest: '/manifest.json',
 };
 
 export default async function RootLayout({

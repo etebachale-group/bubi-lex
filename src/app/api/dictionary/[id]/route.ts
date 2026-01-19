@@ -45,7 +45,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.canEditDictionary) {
+    if (!session?.canEditDictionary && !session?.isAdmin) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
     

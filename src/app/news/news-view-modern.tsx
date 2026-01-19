@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { getSupabase } from '@/lib/db';
 import { toYouTubeEmbedUrl } from '@/lib/utils';
 import YouTubeEmbed from '@/components/youtube-embed';
+import NewsComments from '@/components/news-comments';
 
 interface NewsItem {
   id: number;
@@ -17,6 +18,7 @@ interface NewsItem {
   image?: string | null;
   video?: string | null;
   likes: number;
+  comments_count?: number;
 }
 
 interface NewsViewProps {
@@ -26,6 +28,8 @@ interface NewsViewProps {
 const NewsViewModern = ({ news }: NewsViewProps) => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(news);
   const [likedItems, setLikedItems] = useState<Set<number>>(new Set());
+  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
+  const [expandedNews, setExpandedNews] = useState<number | null>(null);
 
   useEffect(() => {
     setNewsItems(news);
@@ -42,6 +46,20 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
           const newNewsItem = payload.new as NewsItem;
           if (newNewsItem && newNewsItem.id) {
             setNewsItems((currentNews) => [newNewsItem, ...currentNews]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'news' },
+        (payload) => {
+          const updatedNewsItem = payload.new as NewsItem;
+          if (updatedNewsItem && updatedNewsItem.id) {
+            setNewsItems((currentNews) =>
+              currentNews.map((item) =>
+                item.id === updatedNewsItem.id ? updatedNewsItem : item
+              )
+            );
           }
         }
       )
@@ -164,7 +182,7 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1 max-w-4xl mx-auto w-full">
         {newsItems.map((item, index) => (
           <article 
-            key={item.id} 
+            key={`news-${item.id}-${item.video || 'no-video'}`}
             id={String(item.id)}
             className="animate-fade-in"
             style={{ animationDelay: `${index * 100}ms` }}
@@ -188,9 +206,14 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
                   )}
                   {item.video && !item.image && (
                     item.video.startsWith('/uploads/') ? (
-                      <video controls className="w-full h-64 md:h-80 object-cover" src={item.video} />
+                      <video 
+                        key={`video-${item.id}`}
+                        controls 
+                        className="w-full h-64 md:h-80 object-cover" 
+                        src={item.video} 
+                      />
                     ) : (
-                      <div className="h-64 md:h-80">
+                      <div className="h-64 md:h-80" key={`youtube-${item.id}`}>
                         <YouTubeEmbed
                           url={toYouTubeEmbedUrl(item.video) || item.video}
                           title={item.title}
@@ -239,18 +262,35 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
                       variant="ghost"
                       size="sm"
                       className="gap-2"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedComments);
+                        if (newExpanded.has(item.id)) {
+                          newExpanded.delete(item.id);
+                        } else {
+                          newExpanded.add(item.id);
+                        }
+                        setExpandedComments(newExpanded);
+                      }}
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="font-semibold">{item.comments_count || 0}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-2"
                       onClick={() => handleShare(item)}
                     >
                       <Share2 className="w-5 h-5" />
                       <span className="hidden sm:inline">Compartir</span>
                     </Button>
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Comentarios próximamente</span>
-                  </div>
                 </div>
+
+                {/* Comments Section */}
+                {expandedComments.has(item.id) && (
+                  <NewsComments newsId={item.id} />
+                )}
               </CardContent>
             </Card>
           </article>

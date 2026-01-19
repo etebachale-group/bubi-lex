@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft } from 'lucide-react';
+import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { speak } from '@/lib/speech-synthesis';
@@ -28,6 +28,7 @@ const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch 
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [searchLang, setSearchLang] = useState<'bubi' | 'es'>(initialLang);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [generatingIPA, setGeneratingIPA] = useState<Set<number>>(new Set());
 
   // Filtrado local basado en el idioma seleccionado
   const filteredDictionary = dictionary.filter((entry) => {
@@ -87,6 +88,69 @@ const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch 
     }
     params.set('lang', searchLang);
     router.push(`/dictionary?${params.toString()}`);
+  };
+
+  const generateIPA = async (entry: DictionaryEntry) => {
+    if (generatingIPA.has(entry.id)) return;
+
+    setGeneratingIPA(prev => new Set(prev).add(entry.id));
+
+    try {
+      const res = await fetch('/api/ai/pronunciation/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: entry.bubi, wordId: entry.id }),
+      });
+
+      if (!res.ok) throw new Error('Error generando IPA');
+
+      const data = await res.json();
+      
+      // Actualizar la entrada en el estado local
+      window.location.reload(); // Recargar para mostrar el IPA actualizado
+    } catch (error) {
+      console.error('Error generando IPA:', error);
+      alert('No se pudo generar la pronunciación');
+    } finally {
+      setGeneratingIPA(prev => {
+        const next = new Set(prev);
+        next.delete(entry.id);
+        return next;
+      });
+    }
+  };
+
+  // Componente para mostrar IPA con opción de generar
+  const IPAPronunciation = ({ entry }: { entry: DictionaryEntry }) => {
+    if (entry.ipa) {
+      return (
+        <p className="text-sm text-muted-foreground font-mono">
+          /{entry.ipa}/
+        </p>
+      );
+    }
+
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 p-0 h-auto font-normal"
+        onClick={() => generateIPA(entry)}
+        disabled={generatingIPA.has(entry.id)}
+      >
+        {generatingIPA.has(entry.id) ? (
+          <>
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            Generando...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-3 h-3 mr-1" />
+            Generar pronunciación con IA
+          </>
+        )}
+      </Button>
+    );
   };
 
   return (
@@ -221,11 +285,7 @@ const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch 
                       </Button>
                     </div>
                   </div>
-                  {entry.ipa && (
-                    <p className="text-sm text-muted-foreground font-mono">
-                      /{entry.ipa}/
-                    </p>
-                  )}
+                  <IPAPronunciation entry={entry} />
                 </div>
 
                 {/* Spanish Translation */}

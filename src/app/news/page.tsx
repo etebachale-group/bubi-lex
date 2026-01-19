@@ -43,7 +43,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
   // Agregar filtro explícito para asegurar que solo se obtienen noticias existentes
   const { data: rows, count, error } = await supabase
     .from('news')
-    .select('id, title, content, date, image, video, likes', { count: 'exact' })
+    .select('id, title, content, date, image, video, likes, comments_count', { count: 'exact' })
     .not('id', 'is', null) // Asegurar que el ID existe
     .order('date', { ascending: false })
     .range(offset, offset + limit - 1);

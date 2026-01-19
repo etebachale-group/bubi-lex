@@ -9,6 +9,7 @@ export default function YouTubeEmbed({ url, title, className }: YouTubeEmbedProp
   return (
     <div className={className + ' relative w-full aspect-video'}>
       <iframe
+        key={url}
         src={url}
         title={title || 'YouTube video'}
         loading="lazy"
