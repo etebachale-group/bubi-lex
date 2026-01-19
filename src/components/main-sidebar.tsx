@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Book, Newspaper, User, X, Sparkles, Shield, Users } from 'lucide-react';
+import { Home, Book, Newspaper, User, X, Sparkles, Shield, Users, BookText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -29,6 +29,7 @@ const SidebarContent = ({ setSidebarOpen }: { setSidebarOpen: (open: boolean) =>
     { href: '/', label: 'Inicio', icon: Home },
     { href: '/dictionary', label: 'Diccionario', icon: Book },
     { href: '/news', label: 'Noticias', icon: Newspaper },
+    { href: '/stories', label: 'Relatos', icon: BookText },
     { href: '/ai-features', label: 'IA', icon: Sparkles, badge: 'Nuevo' },
   ];
 

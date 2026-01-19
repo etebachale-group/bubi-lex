@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-// Generar imagen para Open Graph (redes sociales)
+// Generar imagen para Open Graph (redes sociales) con logo real
 export const runtime = 'edge';
 
 export const alt = 'BubiLex - Diccionario Bubi-Español';
@@ -32,36 +32,69 @@ export default async function OGImage() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 20,
+            gap: 40,
           }}
         >
+          {/* Logo */}
           <div
             style={{
-              fontSize: 180,
-              fontWeight: 'bold',
-              color: 'white',
-              textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'white',
+              borderRadius: '30px',
+              padding: '30px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
             }}
           >
-            BubiLex
+            <img
+              src="/logo.png"
+              alt="BubiLex Logo"
+              width="200"
+              height="200"
+              style={{
+                objectFit: 'contain',
+              }}
+            />
           </div>
+          
+          {/* Texto */}
           <div
             style={{
-              fontSize: 48,
-              color: 'rgba(255,255,255,0.9)',
-              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 20,
             }}
           >
-            Diccionario Bubi-Español
-          </div>
-          <div
-            style={{
-              fontSize: 32,
-              color: 'rgba(255,255,255,0.8)',
-              textAlign: 'center',
-            }}
-          >
-            Preservando la lengua y cultura del pueblo Bubi
+            <div
+              style={{
+                fontSize: 120,
+                fontWeight: 'bold',
+                color: 'white',
+                textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              }}
+            >
+              BubiLex
+            </div>
+            <div
+              style={{
+                fontSize: 48,
+                color: 'rgba(255,255,255,0.9)',
+                textAlign: 'center',
+              }}
+            >
+              Diccionario Bubi-Español
+            </div>
+            <div
+              style={{
+                fontSize: 32,
+                color: 'rgba(255,255,255,0.8)',
+                textAlign: 'center',
+              }}
+            >
+              Preservando la lengua y cultura del pueblo Bubi
+            </div>
           </div>
         </div>
       </div>

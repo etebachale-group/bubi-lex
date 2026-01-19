@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-// Generar Apple Touch Icon dinámicamente
+// Generar Apple Touch Icon desde el logo real
 export const runtime = 'edge';
 
 export const size = {
@@ -15,19 +15,23 @@ export default function AppleIcon() {
     (
       <div
         style={{
-          fontSize: 120,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          fontWeight: 'bold',
-          borderRadius: '20%',
+          background: 'white',
         }}
       >
-        B
+        <img
+          src="/logo.png"
+          alt="BubiLex"
+          width="180"
+          height="180"
+          style={{
+            objectFit: 'contain',
+          }}
+        />
       </div>
     ),
     {

@@ -67,14 +67,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon', sizes: '32x32', type: 'image/png' },
+      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
       { url: '/img/logo.svg', type: 'image/svg+xml' },
       { url: '/img/logo.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
+      { url: '/logo.png', sizes: '180x180', type: 'image/png' },
     ],
-    shortcut: ['/icon'],
+    shortcut: ['/logo.png'],
   },
   manifest: '/manifest.json',
 };

@@ -5,7 +5,8 @@ import {
   Newspaper, 
   Shield,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  BookText
 } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
@@ -37,6 +38,13 @@ export default async function AdminPage() {
     supabase.from('news').select('*', { count: 'exact', head: true })
   ]);
   
+  // Obtener estadísticas de relatos
+  const { count: storiesCount } = await supabase
+    .from('stories')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_approved', false)
+    .eq('is_rejected', false);
+
   const adminSections = [
     {
       title: 'Diccionario',
@@ -48,11 +56,20 @@ export default async function AdminPage() {
     },
     {
       title: 'Noticias',
-      description: 'Crear y editar noticias y relatos',
+      description: 'Crear y editar noticias',
       href: '/admin/news',
       icon: Newspaper,
       color: 'from-purple-500 to-pink-500',
       count: newsCount || 0
+    },
+    {
+      title: 'Relatos',
+      description: 'Moderar relatos de usuarios',
+      href: '/admin/stories',
+      icon: BookText,
+      color: 'from-blue-500 to-indigo-500',
+      count: storiesCount || 0,
+      badge: storiesCount && storiesCount > 0 ? `${storiesCount} pendientes` : null
     },
     {
       title: 'Logs de Auditoría',
@@ -140,6 +157,11 @@ export default async function AdminPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             {section.count} {section.count === 1 ? 'entrada' : 'entradas'}
                           </p>
+                        )}
+                        {section.badge && (
+                          <span className="inline-block mt-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded">
+                            {section.badge}
+                          </span>
                         )}
                       </div>
                     </div>

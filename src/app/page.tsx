@@ -2,7 +2,7 @@ import WordOfTheDay from "@/components/word-of-the-day";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, Newspaper, Sparkles, Brain, Target, Trophy } from "lucide-react";
+import { ArrowRight, BookOpen, Newspaper, Sparkles, Brain, Target, Trophy, BookText, Heart, Eye } from "lucide-react";
 import StructuredData from "@/components/seo/structured-data";
 import { getSupabase } from '@/lib/db';
 
@@ -13,7 +13,8 @@ async function getRecentNews() {
   const { data, error } = await supabase
     .from('news')
     .select('id, title, date')
-    .not('id', 'is', null) // Asegurar que el ID existe
+    .eq('is_approved', true)
+    .not('id', 'is', null)
     .order('date', { ascending: false })
     .limit(3);
 
@@ -22,12 +23,29 @@ async function getRecentNews() {
     return [];
   }
   
-  // Filtrar noticias válidas
   return (data || []).filter(item => item && item.id && item.title);
+}
+
+async function getFeaturedStories() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('stories')
+    .select('id, title, author_name, created_at, views, likes')
+    .eq('is_approved', true)
+    .order('views', { ascending: false })
+    .limit(3);
+
+  if (error) {
+    console.error('Error fetching featured stories:', error);
+    return [];
+  }
+  
+  return data || [];
 }
 
 const DashboardPage = async () => {
   const recentNews = await getRecentNews();
+  const featuredStories = await getFeaturedStories();
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in">
@@ -128,7 +146,7 @@ const DashboardPage = async () => {
       </Link>
 
       <div className="grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2 animate-fade-in-up">
+        <div className="md:col-span-2 space-y-8 animate-fade-in-up">
           <Card className="border-2">
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -167,6 +185,57 @@ const DashboardPage = async () => {
               )}
             </CardContent>
           </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <CardTitle className="text-2xl">Relatos Destacados</CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/stories">
+                    Ver todos
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {featuredStories.length > 0 ? (
+                featuredStories.map((story, index) => (
+                  <div 
+                    key={story.id} 
+                    className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 hover:shadow-md transition-all duration-300"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <Link href={`/stories#${story.id}`} className="font-semibold text-lg hover:text-primary transition-colors block mb-2">
+                      {story.title}
+                    </Link>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>Por {story.author_name}</span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {story.views}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-4 h-4" />
+                        {story.likes}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No hay relatos todavía.</p>
+                  <Button variant="outline" size="sm" asChild className="mt-4">
+                    <Link href="/stories">Enviar un relato</Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="md:col-span-1 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
@@ -184,11 +253,16 @@ const DashboardPage = async () => {
         <Card className="text-center p-6 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950/30 dark:to-pink-900/30 border-pink-200 dark:border-pink-800">
           <Newspaper className="w-12 h-12 mx-auto mb-3 text-pink-600 dark:text-pink-400" />
           <h3 className="text-3xl font-bold text-pink-600 dark:text-pink-400 mb-1">50+</h3>
-          <p className="text-sm text-muted-foreground">Noticias y relatos</p>
+          <p className="text-sm text-muted-foreground">Noticias publicadas</p>
         </Card>
         <Card className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
-          <Sparkles className="w-12 h-12 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
-          <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">Diario</h3>
+          <BookText className="w-12 h-12 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">100+</h3>
+          <p className="text-sm text-muted-foreground">Relatos compartidos</p>
+        </Card>
+        <Card className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 border-orange-200 dark:border-orange-800">
+          <Sparkles className="w-12 h-12 mx-auto mb-3 text-orange-600 dark:text-orange-400" />
+          <h3 className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">Diario</h3>
           <p className="text-sm text-muted-foreground">Palabra del día</p>
         </Card>
       </div>
