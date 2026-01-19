@@ -1,9 +1,7 @@
 import { ImageResponse } from 'next/og';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 
 // Generar favicon desde el logo real
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export const size = {
   width: 32,
@@ -13,7 +11,7 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function Icon() {
-  // Usar el logo directamente
+  // Generar favicon con gradiente de marca
   return new ImageResponse(
     (
       <div
@@ -23,18 +21,20 @@ export default async function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'white',
+          background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
+          borderRadius: '6px',
         }}
       >
-        <img
-          src="/logo.png"
-          alt="BubiLex"
-          width="32"
-          height="32"
+        <div
           style={{
-            objectFit: 'contain',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: 'white',
+            fontFamily: 'system-ui, sans-serif',
           }}
-        />
+        >
+          B
+        </div>
       </div>
     ),
     {

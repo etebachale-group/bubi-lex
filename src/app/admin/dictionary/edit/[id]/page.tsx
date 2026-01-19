@@ -20,18 +20,31 @@ async function getEntry(id: string) {
   return data;
 }
 
-export default async function EditDictionaryEntryPage({ params }: { params: { id: string } }) {
-  const entry = await getEntry(params.id);
-  const mode = params.id === 'new' ? 'create' : 'edit';
+export default async function EditDictionaryEntryPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  const resolvedParams = await params;
+  const entry = await getEntry(resolvedParams.id);
+  const mode = resolvedParams.id === 'new' ? 'create' : 'edit';
+  
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">{mode === 'create' ? 'Añadir Palabra' : 'Editar Palabra'}</h1>
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold mb-6">
+        {mode === 'create' ? 'Añadir Palabra' : 'Editar Palabra'}
+      </h1>
       <DictionaryEntryForm
         mode={mode}
         id={entry?.id}
-        initial={entry ? { bubi: entry.bubi, spanish: entry.spanish, ipa: entry.ipa, notes: entry.notes } : null}
+        initial={entry ? { 
+          bubi: entry.bubi, 
+          spanish: entry.spanish, 
+          ipa: entry.ipa, 
+          notes: entry.notes 
+        } : null}
         onSaved={(savedId) => {
-          // Simple redirect client-side (progressive enhancement) - handled in form consumer if needed
+          // Redirect handled in form
         }}
       />
     </div>

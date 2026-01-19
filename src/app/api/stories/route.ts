@@ -7,7 +7,7 @@ const StorySchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(255, 'Título muy largo'),
   content: z.string().min(10, 'El relato debe tener al menos 10 caracteres').max(10000, 'Relato muy largo'),
   author_name: z.string().min(1, 'El nombre es requerido').max(100, 'Nombre muy largo'),
-  author_email: z.string().email('Email inválido').optional().nullable(),
+  author_email: z.string().email('Email inválido').optional().or(z.literal('')).transform(val => val === '' ? null : val),
 });
 
 // GET - Obtener relatos aprobados
