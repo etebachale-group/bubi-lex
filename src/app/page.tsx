@@ -13,6 +13,7 @@ async function getRecentNews() {
   const { data, error } = await supabase
     .from('news')
     .select('id, title, date')
+    .not('id', 'is', null) // Asegurar que el ID existe
     .order('date', { ascending: false })
     .limit(3);
 
@@ -20,7 +21,9 @@ async function getRecentNews() {
     console.error('Error fetching recent news:', error);
     return [];
   }
-  return data;
+  
+  // Filtrar noticias válidas
+  return (data || []).filter(item => item && item.id && item.title);
 }
 
 const DashboardPage = async () => {

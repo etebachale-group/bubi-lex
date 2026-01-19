@@ -39,9 +39,12 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
   const offset = (page - 1) * limit;
 
   const supabase = getSupabase();
+  
+  // Agregar filtro explícito para asegurar que solo se obtienen noticias existentes
   const { data: rows, count, error } = await supabase
     .from('news')
     .select('id, title, content, date, image, video, likes', { count: 'exact' })
+    .not('id', 'is', null) // Asegurar que el ID existe
     .order('date', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -49,9 +52,11 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
     console.error('Supabase select Error:', error);
   }
 
+  // Filtrar cualquier noticia nula o inválida
+  const validRows = (rows ?? []).filter(row => row && row.id && row.title);
   const total = count ?? 0;
 
-  const itemListElement = (rows ?? []).map((item, index) => ({
+  const itemListElement = validRows.map((item, index) => ({
     '@type': 'ListItem',
     position: index + 1 + offset,
     url: `/news#${item.id}`,
@@ -84,7 +89,7 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
         { label: 'Inicio', href: '/' },
         { label: 'Noticias' },
       ]} />
-      <NewsViewModern news={(rows ?? []).map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
+      <NewsViewModern news={validRows.map(r => ({ ...r, image: r.image ?? undefined, video: r.video ?? undefined }))} />
     </>
   );
 }
