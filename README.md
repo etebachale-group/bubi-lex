@@ -1,119 +1,224 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌍 BubiLex - Diccionario Bubi-Español
 
-## Getting Started
+Diccionario digital interactivo de la lengua Bubi con funcionalidades avanzadas de IA, sistema de noticias, relatos comunitarios y herramientas de aprendizaje.
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38bdf8)](https://tailwindcss.com/)
+
+---
+
+## ✨ Características
+
+- 🔍 **Diccionario Bidireccional** - Búsqueda Bubi ↔ Español
+- 🤖 **IA Integrada** - Aprendizaje personalizado, quiz y traducción
+- 📰 **Sistema de Noticias** - Con comentarios y likes
+- 📖 **Relatos Comunitarios** - Historias moderadas por la comunidad
+- 🎯 **Sistema de Roles** - Admin, Colaborador, Usuario
+- 🔊 **Pronunciación IPA** - Generación automática
+- 📱 **PWA** - Instalable como app
+- 🌙 **Dark Mode** - Tema claro y oscuro
+- ⚡ **Tiempo Real** - Actualizaciones instantáneas
+
+---
+
+## 🚀 Inicio Rápido
+
+### Requisitos Previos
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+- Cuenta de Supabase
+- Cuenta de Google Cloud (para OAuth)
+
+### Instalación
 
 ```bash
+# Clonar repositorio
+git clone [url-del-repo]
+cd bubi-lex
+
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales
+
+# Ejecutar scripts SQL en Supabase (ver sección Base de Datos)
+
+# Iniciar servidor de desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
 
 ---
 
-## Project Specific Configuration
+## ⚙️ Configuración
 
-### Environment Variables
+### Variables de Entorno
 
-Create a `.env.local` (never commit real secrets) based on `.env.example`.
+Crear archivo `.env.local` con:
 
-Key variables:
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=tu_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_key
+SUPABASE_SERVICE_ROLE_KEY=tu_service_key
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (public) |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth credentials for Google Login |
-| `NEXTAUTH_SECRET` | Secret for signing NextAuth JWT / CSRF tokens |
-| `ADMIN_GOOGLE_EMAILS` | Comma-separated allowlist of admin emails (empty = everyone with Google login is admin) |
-| `ENABLE_AUDIT_LOG` | When `true` enables in-memory admin action audit log |
-| `GROQ_API_KEY` | Groq API key for free AI features (recommended) |
-| `TOGETHER_API_KEY` | Together AI API key (alternative) |
-| `OPENAI_API_KEY` | OpenAI API key (optional, for premium AI) |
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=genera_con_openssl_rand_base64_32
 
-### Admin & Authentication
+# Google OAuth
+GOOGLE_CLIENT_ID=tu_client_id
+GOOGLE_CLIENT_SECRET=tu_client_secret
 
-Authentication is implemented with **NextAuth (Google Provider)**. Admin access is restricted by email allowlist (`ADMIN_GOOGLE_EMAILS`).
+# Admin
+ADMIN_EMAILS=admin@example.com
 
-Protected routes live under `/admin`. Middleware checks a JWT session (strategy = `jwt`).
+# OpenAI (Opcional)
+OPENAI_API_KEY=tu_api_key
+```
 
-### AI Features
+### Base de Datos
 
-BubiLex includes advanced AI-powered features:
-- **Contextual Translation** - Translate with cultural context
-- **Practice Quiz** - Auto-generated quizzes
-- **Pronunciation Guide** - IPA notation and tips
-- **Contextual Examples** - Culturally appropriate examples
-- **Etymology** - Word origins and history
+Ejecutar scripts SQL en Supabase (en orden):
 
-Supports multiple providers:
-- **Groq** (free, recommended) - 14,400 req/day
-- **Together AI** (free credits)
-- **Ollama** (local, unlimited)
-- **OpenAI/Anthropic** (premium)
-
-See `FUNCIONALIDADES-IA.md` and `ALTERNATIVAS-GRATUITAS.md` for details.
-
-### Audit Log (Experimental)
-
-If `ENABLE_AUDIT_LOG=true`, each dictionary mutation (create, update, delete, bulk insert) is recorded in an in-memory buffer (max 500 entries). Entries include timestamp, actor email, action, target id and meta.
-
-You can view recent entries at: `/admin/audit` (must be logged in as admin). The API endpoint backing it is `GET /api/admin/audit?limit=50`.
-
-This storage is volatile (resets on redeploy). For persistence, replace `recordAdminAudit` in `src/lib/audit-log.ts` with inserts into a database table (e.g., `admin_audit_log`).
-
-### Realtime Dictionary Events
-
-Server-Sent Events endpoint: `/api/dictionary/events` broadcasts insert/update/delete/bulk-insert events consumed by the dictionary UI for realtime updates.
-
-### Word of the Day
-
-Deterministic selection based on date hashing with fallback to random and avoidance of consecutive duplicates.
+1. `db/schema.sql` - Esquema base
+2. `db/add-comments-system.sql` - Sistema de comentarios
+3. `db/add-stories-system.sql` - Sistema de relatos
+4. `db/audit-schema.sql` - Logs de auditoría
 
 ---
 
-## 📄 License & Credits
+## 📚 Documentación
 
-**© 2025 BubiLex. Todos los derechos reservados.**
+Ver **[DOCUMENTACION-COMPLETA-BUBILEX.md](./DOCUMENTACION-COMPLETA-BUBILEX.md)** para:
 
-Desarrollado por **[Eteba Chale Group](https://etebachale-group.github.io/cvfernandochaleeteba.github.io/)**
-
-### Tecnologías Utilizadas
-- **Next.js 14** - React framework
-- **Supabase** - Database and authentication
-- **Tailwind CSS** - Styling
-- **shadcn/ui** - UI components
-- **Groq** - AI features (free)
-- **NextAuth** - Authentication
-- **TypeScript** - Type safety
-
-### Contribuciones
-Este proyecto es parte del esfuerzo de preservación y promoción del idioma Bubi de Guinea Ecuatorial.
+- Guías detalladas de uso
+- Arquitectura del sistema
+- APIs y endpoints
+- Solución de problemas
+- Mantenimiento
 
 ---
+
+## 🏗️ Estructura del Proyecto
+
+```
+bubi-lex/
+├── src/
+│   ├── app/              # App Router (Next.js 14)
+│   │   ├── admin/        # Panel de administración
+│   │   ├── api/          # API Routes
+│   │   ├── dictionary/   # Diccionario público
+│   │   ├── news/         # Noticias
+│   │   ├── stories/      # Relatos
+│   │   └── ai-features/  # Herramientas IA
+│   ├── components/       # Componentes React
+│   ├── lib/              # Utilidades
+│   └── types/            # Tipos TypeScript
+├── db/                   # Scripts SQL
+├── public/               # Archivos estáticos
+└── docs/                 # Documentación
+```
+
+---
+
+## 🎯 Uso
+
+### Para Usuarios
+
+- **Buscar palabras:** `/dictionary`
+- **Ver noticias:** `/news`
+- **Leer relatos:** `/stories`
+- **Herramientas IA:** `/ai-features`
+
+### Para Colaboradores
+
+- **Panel:** `/collaborator`
+- **Agregar palabras:** `/collaborator/dictionary/add`
+- **Mis palabras:** `/collaborator/dictionary/my-words`
+
+### Para Administradores
+
+- **Panel principal:** `/admin`
+- **Diccionario:** `/admin/dictionary`
+- **Noticias:** `/admin/news`
+- **Relatos:** `/admin/stories`
+- **Auditoría:** `/admin/audit`
+
+---
+
+## 🛠️ Tecnologías
+
+- **Framework:** Next.js 14 (App Router)
+- **Lenguaje:** TypeScript
+- **Base de Datos:** Supabase (PostgreSQL)
+- **Autenticación:** NextAuth.js
+- **Estilos:** Tailwind CSS
+- **UI Components:** shadcn/ui
+- **IA:** OpenAI GPT (opcional)
+- **Iconos:** Lucide React
+
+---
+
+## 📦 Scripts Disponibles
+
+```bash
+# Desarrollo
+npm run dev
+
+# Build para producción
+npm run build
+
+# Iniciar producción
+npm start
+
+# Linting
+npm run lint
+
+# Type checking
+npm run type-check
+```
+
+---
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir Pull Request
+
+---
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+
+---
+
+## 🙏 Agradecimientos
+
+- Comunidad Bubi de Guinea Ecuatorial
+- Contribuidores del proyecto
+- Usuarios y testers
+
+---
+
+## 📞 Soporte
+
+Para soporte y preguntas:
+
+- 📖 Ver [Documentación Completa](./DOCUMENTACION-COMPLETA-BUBILEX.md)
+- 🐛 Reportar issues en GitHub
+- 💬 Contactar al equipo de desarrollo
+
+---
+
+**Hecho con ❤️ para preservar la lengua y cultura Bubi**
