@@ -145,6 +145,7 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   maxLength={255}
+                  className="text-base"
                 />
               </div>
               
@@ -153,9 +154,9 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 required
-                rows={10}
+                rows={8}
                 maxLength={10000}
-                className="resize-none"
+                className="resize-none text-base min-h-[200px]"
               />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,6 +166,7 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
                   onChange={(e) => setFormData({ ...formData, author_name: e.target.value })}
                   required
                   maxLength={100}
+                  className="text-base"
                 />
                 <Input
                   type="email"
@@ -172,14 +174,15 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
                   value={formData.author_email}
                   onChange={(e) => setFormData({ ...formData, author_email: e.target.value })}
                   maxLength={255}
+                  className="text-base"
                 />
               </div>
               
-              <div className="flex items-center justify-between">
+              <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
                   Tu relato será visible después de ser aprobado por un moderador
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
                   <Button
                     type="button"
                     variant="outline"
@@ -187,13 +190,14 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
                       setShowForm(false);
                       setFormData({ title: '', content: '', author_name: '', author_email: '' });
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 w-full sm:w-auto"
                   >
                     {submitting ? (
                       'Enviando...'

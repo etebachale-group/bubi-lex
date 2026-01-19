@@ -179,7 +179,7 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
       </div>
 
       {/* News Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1 max-w-4xl mx-auto w-full">
+      <div className="grid gap-6 max-w-4xl mx-auto w-full">
         {newsItems.map((item, index) => (
           <article 
             key={`news-${item.id}-${item.video || 'no-video'}`}
@@ -192,7 +192,7 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
               {(item.image || item.video) && (
                 <div className="relative overflow-hidden">
                   {item.image && (
-                    <div className="relative h-64 md:h-80 overflow-hidden">
+                    <div className="relative h-56 sm:h-64 md:h-80 overflow-hidden">
                       <Image
                         src={item.image}
                         alt={item.title}
@@ -209,11 +209,11 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
                       <video 
                         key={`video-${item.id}`}
                         controls 
-                        className="w-full h-64 md:h-80 object-cover" 
+                        className="w-full h-56 sm:h-64 md:h-80 object-cover" 
                         src={item.video} 
                       />
                     ) : (
-                      <div className="h-64 md:h-80" key={`youtube-${item.id}`}>
+                      <div className="h-56 sm:h-64 md:h-80" key={`youtube-${item.id}`}>
                         <YouTubeEmbed
                           url={toYouTubeEmbedUrl(item.video) || item.video}
                           title={item.title}
@@ -224,44 +224,44 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
                 </div>
               )}
 
-              <CardContent className="pt-6">
+              <CardContent className="p-4 sm:p-6">
                 {/* Date */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                  <Calendar className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   <time dateTime={item.date}>{formatDate(item.date)}</time>
                 </div>
 
                 {/* Title */}
-                <h2 className="text-2xl md:text-3xl font-headline font-bold mb-4 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-headline font-bold mb-3 sm:mb-4 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors leading-tight">
                   {item.title}
                 </h2>
 
                 {/* Content */}
-                <p className="text-muted-foreground leading-relaxed mb-6">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 sm:mb-6">
                   {item.content}
                 </p>
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between pt-3 sm:pt-4 border-t">
+                  <div className="flex items-center gap-2 sm:gap-4">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`gap-2 ${likedItems.has(item.id) ? 'text-red-500' : ''}`}
+                      className={`gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 ${likedItems.has(item.id) ? 'text-red-500' : ''}`}
                       onClick={() => handleLike(index, item.id)}
                       disabled={likedItems.has(item.id)}
                     >
                       {likedItems.has(item.id) ? (
-                        <Heart className="w-5 h-5 fill-current" />
+                        <Heart className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                       ) : (
-                        <ThumbsUp className="w-5 h-5" />
+                        <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
-                      <span className="font-semibold">{item.likes}</span>
+                      <span className="font-semibold text-xs sm:text-sm">{item.likes}</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2"
+                      className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
                       onClick={() => {
                         const newExpanded = new Set(expandedComments);
                         if (newExpanded.has(item.id)) {
@@ -272,24 +272,26 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
                         setExpandedComments(newExpanded);
                       }}
                     >
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="font-semibold">{item.comments_count || 0}</span>
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="font-semibold text-xs sm:text-sm">{item.comments_count || 0}</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2"
+                      className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
                       onClick={() => handleShare(item)}
                     >
-                      <Share2 className="w-5 h-5" />
-                      <span className="hidden sm:inline">Compartir</span>
+                      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="hidden sm:inline text-xs sm:text-sm">Compartir</span>
                     </Button>
                   </div>
                 </div>
 
                 {/* Comments Section */}
                 {expandedComments.has(item.id) && (
-                  <NewsComments newsId={item.id} />
+                  <div className="mt-4">
+                    <NewsComments newsId={item.id} />
+                  </div>
                 )}
               </CardContent>
             </Card>

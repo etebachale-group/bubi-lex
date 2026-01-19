@@ -6,7 +6,8 @@ import {
   Shield,
   Sparkles,
   ArrowRight,
-  BookText
+  BookText,
+  Users
 } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
@@ -45,6 +46,12 @@ export default async function AdminPage() {
     .eq('is_approved', false)
     .eq('is_rejected', false);
 
+  // Obtener cantidad de colaboradores
+  const { count: collaboratorsCount } = await supabase
+    .from('user_roles')
+    .select('*', { count: 'exact', head: true })
+    .eq('can_edit_dictionary', true);
+
   const adminSections = [
     {
       title: 'Diccionario',
@@ -53,6 +60,14 @@ export default async function AdminPage() {
       icon: BookOpen,
       color: 'from-blue-500 to-cyan-500',
       count: wordsCount || 0
+    },
+    {
+      title: 'Colaboradores',
+      description: 'Gestionar usuarios colaboradores',
+      href: '/admin/collaborators',
+      icon: Users,
+      color: 'from-cyan-500 to-teal-500',
+      count: collaboratorsCount || 0
     },
     {
       title: 'Noticias',
