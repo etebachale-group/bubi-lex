@@ -49,9 +49,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    
+    // Log del body recibido para debugging
+    console.log('Body recibido:', JSON.stringify(body, null, 2));
+    
     const parsed = StorySchema.safeParse(body);
     
     if (!parsed.success) {
+      console.error('Error de validación:', parsed.error.flatten());
       return NextResponse.json({ 
         error: 'Datos inválidos', 
         details: parsed.error.flatten() 
@@ -76,8 +81,17 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
+      console.error('Error de Supabase:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       logger.error('Error al crear relato', error as Error);
-      return NextResponse.json({ error: 'Error al crear relato' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Error al crear relato',
+        details: error.message 
+      }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -85,7 +99,11 @@ export async function POST(req: Request) {
       message: 'Relato enviado correctamente. Será visible después de ser aprobado por un moderador.'
     }, { status: 201 });
   } catch (err) {
+    console.error('Error completo:', err);
     logger.error('Error en POST /api/stories', err);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno del servidor',
+      details: err instanceof Error ? err.message : 'Error desconocido'
+    }, { status: 500 });
   }
 }
