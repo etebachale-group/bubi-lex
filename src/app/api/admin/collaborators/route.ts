@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { getSupabase } from '@/lib/db';
-import { logAuditEvent } from '@/lib/audit-log';
+import { recordAdminAudit } from '@/lib/audit-log';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,12 +44,11 @@ export async function POST(req: NextRequest) {
 
       if (error) throw error;
 
-      await logAuditEvent({
-        action: 'collaborator_updated',
-        entity_type: 'user_role',
-        entity_id: data.user_id,
-        details: { email: email.toLowerCase(), granted_permission: 'can_edit_dictionary' },
-        user_id: session.user?.email || 'unknown',
+      recordAdminAudit({
+        actorEmail: session.user?.email || null,
+        action: 'collaborator.updated',
+        target: data.user_id,
+        meta: { email: email.toLowerCase(), granted_permission: 'can_edit_dictionary' },
       });
 
       return NextResponse.json({ 
@@ -71,12 +70,11 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    await logAuditEvent({
-      action: 'collaborator_created',
-      entity_type: 'user_role',
-      entity_id: data.user_id,
-      details: { email: email.toLowerCase(), permission: 'can_edit_dictionary' },
-      user_id: session.user?.email || 'unknown',
+    recordAdminAudit({
+      actorEmail: session.user?.email || null,
+      action: 'collaborator.created',
+      target: data.user_id,
+      meta: { email: email.toLowerCase(), permission: 'can_edit_dictionary' },
     });
 
     return NextResponse.json({ 

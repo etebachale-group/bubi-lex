@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { getSupabase } from '@/lib/db';
-import { logAuditEvent } from '@/lib/audit-log';
+import { recordAdminAudit } from '@/lib/audit-log';
 
 export async function DELETE(
   req: NextRequest,
@@ -44,12 +44,11 @@ export async function DELETE(
 
     if (error) throw error;
 
-    await logAuditEvent({
-      action: 'collaborator_removed',
-      entity_type: 'user_role',
-      entity_id: userId,
-      details: { email: user?.email, removed_permission: 'can_edit_dictionary' },
-      user_id: session.user?.email || 'unknown',
+    recordAdminAudit({
+      actorEmail: session.user?.email || null,
+      action: 'collaborator.removed',
+      target: userId,
+      meta: { email: user?.email, removed_permission: 'can_edit_dictionary' },
     });
 
     return NextResponse.json({ 
