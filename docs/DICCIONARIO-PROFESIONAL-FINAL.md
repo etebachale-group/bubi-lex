@@ -85,18 +85,42 @@ CREATE TABLE dictionary (
 
 ## 🚀 Instrucciones de Implementación
 
-### Paso 1: Backup de Datos Actuales (IMPORTANTE)
+### ⚠️ IMPORTANTE: Dos Escenarios Posibles
 
-```sql
--- Crear backup de la tabla actual
-CREATE TABLE dictionary_backup AS 
-SELECT * FROM dictionary;
+#### Escenario A: Tabla `dictionary` NO Existe (Primera Instalación)
+Ejecutar directamente `db/schema-dictionary-mejorado.sql`
 
--- Verificar backup
-SELECT COUNT(*) FROM dictionary_backup;
+#### Escenario B: Tabla `dictionary` YA Existe (Migración)
+**Si obtienes error "relation already exists"**, usar el script de migración.
+
+---
+
+### Paso 1: Migrar Tabla Existente (Si ya tienes datos)
+
+**Archivo:** `db/migrate-to-professional-structure.sql` ⭐
+
+Este script:
+- Crea backup automático
+- Agrega nuevas columnas sin perder datos
+- Crea índices solo si no existen
+- No genera errores si ya existen
+
+**Ejecutar desde Supabase Dashboard:**
+1. Ir a **SQL Editor**
+2. Copiar contenido de `db/migrate-to-professional-structure.sql`
+3. Hacer clic en **Run**
+4. Verificar mensajes de éxito
+
+**O desde línea de comandos:**
+```bash
+psql -h [TU_HOST] -U postgres -d postgres -f db/migrate-to-professional-structure.sql
 ```
 
-### Paso 2: Aplicar Schema Profesional
+---
+
+### Paso 1 Alternativo: Crear Tabla Nueva (Si NO existe)
+
+**Archivo:** `db/schema-dictionary-mejorado.sql`
 
 ```bash
 # Conectar a Supabase y ejecutar:
@@ -105,8 +129,7 @@ psql -h [TU_HOST] -U postgres -d postgres -f db/schema-dictionary-mejorado.sql
 
 O desde el Dashboard de Supabase:
 1. Ir a SQL Editor
-2. Copiar contenido de `db/schema-dictionary-mejorado.sql`
-3. Ejecutar
+2. Copiar contenido
 
 ### Paso 3: Importar Datos Profesionales
 
