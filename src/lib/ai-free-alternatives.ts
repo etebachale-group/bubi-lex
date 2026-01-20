@@ -17,6 +17,10 @@ let grammarContextCache: GrammarContext | null = null;
 let grammarCacheTime: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
+// Cache de estructura lingüística completa
+let linguisticStructureCache: string | null = null;
+let linguisticCacheTime: number = 0;
+
 // ============================================
 // 1. HUGGING FACE (Gratuito con límites)
 // ============================================
@@ -180,11 +184,18 @@ export async function generateExamplesWithFreeAI(
   spanishTranslation: string,
   count: number = 3
 ): Promise<string[]> {
-  // Cargar contexto gramatical
+  // Cargar contexto gramatical completo
   const grammarContext = await loadGrammarContextFree();
-  const grammarPrompt = formatGrammarContextFree(grammarContext);
+  const grammarPrompt = await formatCompleteContextFree(grammarContext);
   
-  const prompt = `${grammarPrompt}Usando el contexto gramatical del Bubi proporcionado, genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}"). 
+  const prompt = `${grammarPrompt}Usando el contexto gramatical y estructura lingüística del Bubi, genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}"). 
+
+IMPORTANTE:
+- Respeta las clases nominales y prefijos
+- Considera los tonos (alto/bajo)
+- Usa el orden S-V-O
+- Ortografía fonética
+
 Cada ejemplo debe ser una frase corta en contexto cultural Bubi, siguiendo las reglas gramaticales.`;
 
   try {
@@ -226,7 +237,18 @@ export async function translateWithFreeAI(
   explanation: string;
   alternatives: string[];
 }> {
-  const prompt = `Traduce "${text}" al español${context ? ` en el contexto: ${context}` : ''}. 
+  // Cargar contexto gramatical completo
+  const grammarContext = await loadGrammarContextFree();
+  const grammarPrompt = await formatCompleteContextFree(grammarContext);
+  
+  const prompt = `${grammarPrompt}Traduce "${text}" al español${context ? ` en el contexto: ${context}` : ''}. 
+
+IMPORTANTE:
+- Considera clases nominales y prefijos
+- Analiza tonos (alto/bajo)
+- Respeta concordancia
+- Ten en cuenta el sistema de aumentos
+
 Proporciona la traducción, una breve explicación y 2 alternativas.
 Formato: TRADUCCIÓN: ... | EXPLICACIÓN: ... | ALTERNATIVAS: ..., ...`;
 
@@ -271,13 +293,23 @@ export async function generateQuizWithFreeAI(
 }>> {
   if (words.length === 0) return [];
 
+  // Cargar contexto gramatical completo
+  const grammarContext = await loadGrammarContextFree();
+  const grammarPrompt = await formatCompleteContextFree(grammarContext);
+  
   const wordList = words.slice(0, 3).map(w => `${w.bubi} = ${w.spanish}`).join(', ');
-  const prompt = `Crea 3 preguntas de opción múltiple para estas palabras Bubi: ${wordList}.
+  const prompt = `${grammarPrompt}Crea 3 preguntas de opción múltiple para estas palabras Bubi: ${wordList}.
+
+IMPORTANTE:
+- Incluye preguntas sobre clases nominales
+- Pregunta sobre tonos y significado
+- Considera prefijos y concordancia
+
 Formato para cada pregunta:
 P: [pregunta]
 A) [opción] B) [opción] C) [opción] D) [opción]
 CORRECTA: [letra]
-EXPLICACIÓN: [texto]`;
+EXPLICACIÓN: [texto con referencia a reglas]`;
 
   try {
     const providers = [
@@ -448,6 +480,29 @@ export async function checkFreeAIAvailability(): Promise<{
 // FUNCIONES DE CONTEXTO GRAMATICAL
 // ============================================
 
+async function loadLinguisticStructureFree(): Promise<string> {
+  const now = Date.now();
+  if (linguisticStructureCache && (now - linguisticCacheTime) < CACHE_DURATION) {
+    return linguisticStructureCache;
+  }
+
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    const filePath = path.join(process.cwd(), 'src', 'app', 'admin', 'grammar', 'estructura_de_la_lengua_bubi_para_ia.md');
+    const content = await fs.readFile(filePath, 'utf-8');
+    
+    linguisticStructureCache = content;
+    linguisticCacheTime = now;
+    
+    return content;
+  } catch (error) {
+    logger.error('Error loading linguistic structure', error);
+    return '';
+  }
+}
+
 async function loadGrammarContextFree(): Promise<GrammarContext> {
   const now = Date.now();
   if (grammarContextCache && (now - grammarCacheTime) < CACHE_DURATION) {
@@ -508,5 +563,37 @@ function formatGrammarContextFree(context: GrammarContext): string {
   }
   
   formatted += '\n=== FIN DEL CONTEXTO ===\n\n';
+  return formatted;
+}
+
+async function formatCompleteContextFree(context: GrammarContext): Promise<string> {
+  let formatted = formatGrammarContextFree(context);
+  
+  // Agregar estructura lingüística completa (versión compacta)
+  const linguisticStructure = await loadLinguisticStructureFree();
+  if (linguisticStructure) {
+    // Extraer solo las secciones más importantes para APIs con límites
+    const sections = [
+      'Sistema fonético',
+      'Clases nominales',
+      'Verbos',
+      'Orden sintáctico',
+      'Reglas clave para IA'
+    ];
+    
+    formatted += '\n\n=== ESTRUCTURA LINGÜÍSTICA BUBI (COMPACTA) ===\n\n';
+    
+    // Extraer secciones relevantes
+    sections.forEach(section => {
+      const regex = new RegExp(`##.*${section}[\\s\\S]*?(?=##|$)`, 'i');
+      const match = linguisticStructure.match(regex);
+      if (match) {
+        formatted += match[0].substring(0, 500) + '\n\n';
+      }
+    });
+    
+    formatted += '\n=== FIN DE LA ESTRUCTURA ===\n\n';
+  }
+  
   return formatted;
 }
