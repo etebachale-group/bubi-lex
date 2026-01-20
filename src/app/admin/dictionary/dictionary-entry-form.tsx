@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +22,7 @@ export interface DictionaryEntryFormProps {
 }
 
 export default function DictionaryEntryForm({ mode, id, initial, onSaved }: DictionaryEntryFormProps) {
+  const router = useRouter();
   const [form, setForm] = useState({
     bubi: initial?.bubi || '',
     spanish: initial?.spanish || '',
@@ -91,7 +93,15 @@ export default function DictionaryEntryForm({ mode, id, initial, onSaved }: Dict
       }
       
       const json = await res.json();
-      if (onSaved) onSaved(json.id ?? id!);
+      
+      // Llamar callback si existe
+      if (onSaved) {
+        onSaved(json.id ?? id!);
+      }
+      
+      // Redirigir al panel de diccionario
+      router.push('/admin/dictionary');
+      router.refresh();
     } catch (err: any) {
       setErrors(e => ({ ...e, root: err.message }));
     } finally {

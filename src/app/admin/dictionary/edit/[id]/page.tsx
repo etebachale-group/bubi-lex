@@ -43,9 +43,6 @@ export default async function EditDictionaryEntryPage({
           ipa: entry.ipa, 
           notes: entry.notes 
         } : null}
-        onSaved={(savedId) => {
-          // Redirect handled in form
-        }}
       />
     </div>
   );

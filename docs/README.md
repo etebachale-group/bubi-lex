@@ -66,6 +66,18 @@ Contenido:
 
 ---
 
+#### ⚡ [ACTUALIZACION-TIEMPO-REAL.md](./ACTUALIZACION-TIEMPO-REAL.md)
+**Implementación de actualización en tiempo real** (Nuevo)
+
+Contenido:
+- Funcionalidades implementadas
+- Implementación técnica
+- Beneficios para usuarios
+- Configuración requerida
+- Pruebas y métricas
+
+---
+
 ### Material Promocional
 
 #### 🎯 [PROMOCION-BUBILEX.txt](./PROMOCION-BUBILEX.txt)
@@ -107,6 +119,7 @@ docs/
 ├── CAMBIOS-20-ENE-2026.md         # Registro de cambios
 ├── RESUMEN-DEPURACION.md          # Resumen de depuración
 ├── ORGANIZACION-FINAL.md          # Organización de archivos
+├── ACTUALIZACION-TIEMPO-REAL.md   # Actualización en tiempo real
 └── PROMOCION-BUBILEX.txt          # Material promocional
 ```
 

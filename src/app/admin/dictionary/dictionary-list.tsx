@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Edit, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
+import { getSupabase } from '@/lib/db';
 
 interface DictionaryEntry {
   id: number;
@@ -20,10 +21,60 @@ interface DictionaryListProps {
   entries: DictionaryEntry[];
 }
 
-export default function DictionaryList({ entries }: DictionaryListProps) {
+export default function DictionaryList({ entries: initialEntries }: DictionaryListProps) {
   const router = useRouter();
+  const [entries, setEntries] = useState<DictionaryEntry[]>(initialEntries);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState<number | null>(null);
+
+  // Actualización en tiempo real con Supabase
+  useEffect(() => {
+    const supabase = getSupabase();
+    
+    const channel = supabase
+      .channel('dictionary-admin-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const newEntry = payload.new as DictionaryEntry;
+          if (newEntry && newEntry.id) {
+            setEntries((current) => [newEntry, ...current]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const updatedEntry = payload.new as DictionaryEntry;
+          if (updatedEntry && updatedEntry.id) {
+            setEntries((current) =>
+              current.map((entry) =>
+                entry.id === updatedEntry.id ? updatedEntry : entry
+              )
+            );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const deletedId = (payload.old as Partial<DictionaryEntry>).id;
+          if (deletedId) {
+            setEntries((current) =>
+              current.filter((entry) => entry.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filteredEntries = entries.filter(entry => {
     const query = searchQuery.toLowerCase();
@@ -49,8 +100,7 @@ export default function DictionaryList({ entries }: DictionaryListProps) {
         throw new Error(data.error || 'Error al eliminar');
       }
 
-      // Recargar la página para actualizar la lista
-      router.refresh();
+      // La actualización en tiempo real manejará la eliminación de la lista
     } catch (err) {
       alert(`Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {

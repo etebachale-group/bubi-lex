@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { BookOpen, Heart, Eye, Calendar, User, Plus, Send } from 'lucide-react';
+import { getSupabase } from '@/lib/db';
 
 interface Story {
   id: number;
@@ -34,6 +35,64 @@ export default function StoriesView({ initialStories }: StoriesViewProps) {
     author_name: '',
     author_email: '',
   });
+
+  // Tiempo real con Supabase
+  useEffect(() => {
+    const supabase = getSupabase();
+    const channel = supabase
+      .channel('stories-realtime')
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'stories',
+          filter: 'is_approved=eq.true'
+        },
+        (payload) => {
+          const newStory = payload.new as Story;
+          if (newStory && newStory.id) {
+            setStories((current) => [newStory, ...current]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'stories',
+          filter: 'is_approved=eq.true'
+        },
+        (payload) => {
+          const updatedStory = payload.new as Story;
+          if (updatedStory && updatedStory.id) {
+            setStories((current) =>
+              current.map((story) =>
+                story.id === updatedStory.id ? updatedStory : story
+              )
+            );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'stories' },
+        (payload) => {
+          const deletedId = (payload.old as Partial<Story>).id;
+          if (deletedId) {
+            setStories((current) =>
+              current.filter((story) => story.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

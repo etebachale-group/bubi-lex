@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Check, X, Eye, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { getSupabase } from '@/lib/db';
 
 interface Story {
   id: number;
@@ -33,6 +34,54 @@ export default function StoriesModeration({ initialStories }: StoriesModerationP
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Tiempo real con Supabase
+  useEffect(() => {
+    const supabase = getSupabase();
+    const channel = supabase
+      .channel('stories-moderation-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'stories' },
+        (payload) => {
+          const newStory = payload.new as Story;
+          if (newStory && newStory.id) {
+            setStories((current) => [newStory, ...current]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'stories' },
+        (payload) => {
+          const updatedStory = payload.new as Story;
+          if (updatedStory && updatedStory.id) {
+            setStories((current) =>
+              current.map((story) =>
+                story.id === updatedStory.id ? updatedStory : story
+              )
+            );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'stories' },
+        (payload) => {
+          const deletedId = (payload.old as Partial<Story>).id;
+          if (deletedId) {
+            setStories((current) =>
+              current.filter((story) => story.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filteredStories = stories.filter(story => {
     if (filter === 'pending') return !story.is_approved && !story.is_rejected;

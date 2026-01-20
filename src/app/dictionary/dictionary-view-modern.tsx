@@ -7,6 +7,7 @@ import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft, Load
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { speak } from '@/lib/speech-synthesis';
+import { getSupabase } from '@/lib/db';
 
 interface DictionaryEntry {
   id: number;
@@ -22,13 +23,62 @@ interface DictionaryViewProps {
   initialSearch?: string;
 }
 
-const DictionaryViewModern = ({ dictionary, initialLang = 'bubi', initialSearch = '' }: DictionaryViewProps) => {
+const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bubi', initialSearch = '' }: DictionaryViewProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [dictionary, setDictionary] = useState<DictionaryEntry[]>(initialDictionary);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [searchLang, setSearchLang] = useState<'bubi' | 'es'>(initialLang);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [generatingIPA, setGeneratingIPA] = useState<Set<number>>(new Set());
+
+  // Tiempo real con Supabase
+  useEffect(() => {
+    const supabase = getSupabase();
+    const channel = supabase
+      .channel('dictionary-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const newEntry = payload.new as DictionaryEntry;
+          if (newEntry && newEntry.id) {
+            setDictionary((current) => [...current, newEntry]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const updatedEntry = payload.new as DictionaryEntry;
+          if (updatedEntry && updatedEntry.id) {
+            setDictionary((current) =>
+              current.map((entry) =>
+                entry.id === updatedEntry.id ? updatedEntry : entry
+              )
+            );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'dictionary_entries' },
+        (payload) => {
+          const deletedId = (payload.old as Partial<DictionaryEntry>).id;
+          if (deletedId) {
+            setDictionary((current) =>
+              current.filter((entry) => entry.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Filtrado local basado en el idioma seleccionado
   const filteredDictionary = dictionary.filter((entry) => {
