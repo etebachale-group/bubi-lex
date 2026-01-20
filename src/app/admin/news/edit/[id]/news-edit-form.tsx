@@ -27,7 +27,6 @@ export default function NewsEditForm({ newsItem }: NewsEditFormProps) {
     title: '',
     content: '',
     date: new Date().toISOString().split('T')[0], // Defaults to today
-    image: '',
     video: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +37,6 @@ export default function NewsEditForm({ newsItem }: NewsEditFormProps) {
         title: newsItem.title,
         content: newsItem.content,
         date: new Date(newsItem.date).toISOString().split('T')[0],
-        image: newsItem.image || '',
         video: newsItem.video || '',
       });
     }
@@ -59,7 +57,7 @@ export default function NewsEditForm({ newsItem }: NewsEditFormProps) {
     // Preparar datos: convertir strings vacíos a null para URLs opcionales
     const dataToSend = {
       ...formData,
-      image: formData.image.trim() || null,
+      image: null, // Siempre null ya que eliminamos la funcionalidad de imágenes
       video: formData.video.trim() || null,
     };
 
@@ -122,22 +120,30 @@ export default function NewsEditForm({ newsItem }: NewsEditFormProps) {
         />
       </div>
       <div>
-        <Label htmlFor="image">URL de la Imagen (Opcional)</Label>
-        <Input
-          id="image"
-          name="image"
-          value={formData.image}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
         <Label htmlFor="video">URL del Video (Opcional, p.ej. YouTube embed)</Label>
-        <Input
-          id="video"
-          name="video"
-          value={formData.video}
-          onChange={handleChange}
-        />
+        <div className="flex gap-2">
+          <Input
+            id="video"
+            name="video"
+            value={formData.video}
+            onChange={handleChange}
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+          {formData.video && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setFormData(prev => ({ ...prev, video: '' }))}
+            >
+              Limpiar
+            </Button>
+          )}
+        </div>
+        {formData.video && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Haz clic en "Limpiar" para eliminar el video de esta noticia
+          </p>
+        )}
       </div>
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting}>

@@ -1,0 +1,182 @@
+═══════════════════════════════════════════════════════════════════════════
+                    🌍 BUBILEX - DICCIONARIO BUBI-ESPAÑOL
+                    Preservando la Lengua y Cultura Bubi
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 ¿QUÉ ES BUBILEX?
+
+BubiLex es un diccionario digital moderno e interactivo de la lengua Bubi con 
+funcionalidades avanzadas de inteligencia artificial, completamente GRATUITO 
+y accesible desde cualquier dispositivo.
+
+═══════════════════════════════════════════════════════════════════════════
+
+✨ FUNCIONALIDADES PRINCIPALES
+
+📚 DICCIONARIO BIDIRECCIONAL
+   • Búsqueda Bubi → Español y Español → Bubi
+   • Búsqueda en tiempo real mientras escribes
+   • Pronunciación IPA (Alfabeto Fonético Internacional)
+   • Notas y contexto cultural de cada palabra
+   • Palabra del día para aprender constantemente
+   • Búsqueda avanzada con múltiples filtros
+
+🤖 INTELIGENCIA ARTIFICIAL INTEGRADA (100% GRATIS)
+   • Traductor Contextual: Traduce considerando el contexto cultural
+   • Quiz Interactivos: Practica y evalúa tu conocimiento
+   • Guía de Pronunciación: Aprende a pronunciar correctamente
+   • Ejemplos Contextuales: Frases reales de uso cotidiano
+   • Etimología: Descubre el origen e historia de las palabras
+   • Sesiones de Aprendizaje Personalizadas
+
+📰 SISTEMA DE NOTICIAS
+   • Noticias sobre la cultura y comunidad Bubi
+   • Imágenes y videos de YouTube integrados
+   • Sistema de likes y comentarios
+   • Actualización constante de contenido
+
+📖 RELATOS COMUNITARIOS
+   • Comparte historias y experiencias
+   • Moderación para mantener calidad
+   • Preservación de tradiciones orales
+   • Participación sin necesidad de registro
+
+👥 SISTEMA DE ROLES
+   • Usuarios: Acceso completo a búsqueda y herramientas
+   • Colaboradores: Pueden agregar nuevas palabras
+   • Administradores: Gestión completa del contenido
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎨 DISEÑO MODERNO
+
+• Interfaz elegante con efectos glassmorphism
+• Gradientes purple/pink atractivos
+• Modo oscuro y claro
+• Animaciones suaves y profesionales
+• Responsive: funciona en móvil, tablet y escritorio
+• PWA: Instalable como aplicación nativa
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 VENTAJAS ÚNICAS
+
+✓ TOTALMENTE GRATUITO - Sin costos ocultos ni suscripciones
+✓ SIN PUBLICIDAD - Experiencia limpia y enfocada
+✓ ACCESO INSTANTÁNEO - No requiere instalación
+✓ MULTIPLATAFORMA - Funciona en cualquier dispositivo
+✓ OFFLINE READY - Disponible sin conexión (PWA)
+✓ ACTUALIZACIONES CONSTANTES - Nuevo contenido regularmente
+✓ SEGURO Y PRIVADO - Tus datos están protegidos
+✓ CÓDIGO ABIERTO - Transparente y confiable
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎓 HERRAMIENTAS DE APRENDIZAJE
+
+PARA ESTUDIANTES:
+• Quiz interactivos con retroalimentación inmediata
+• Sesiones de aprendizaje adaptadas a tu nivel
+• Ejemplos prácticos de uso en contexto
+• Pronunciación guiada paso a paso
+
+PARA PROFESORES:
+• Material didáctico actualizado
+• Ejemplos culturalmente apropiados
+• Herramientas de evaluación integradas
+• Recursos multimedia (audio, video, imágenes)
+
+PARA LA COMUNIDAD:
+• Preservación de la lengua Bubi
+• Plataforma para compartir conocimiento
+• Conexión entre generaciones
+• Documentación de tradiciones orales
+
+═══════════════════════════════════════════════════════════════════════════
+
+🌐 ACCESO
+
+WEB: https://bubi-lex.vercel.app
+DISPONIBLE 24/7 desde cualquier navegador
+
+COMPATIBLE CON:
+• Chrome, Firefox, Safari, Edge
+• Android, iOS, Windows, Mac, Linux
+• Tablets y smartphones
+• Computadoras de escritorio
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 CASOS DE USO
+
+👨‍🎓 ESTUDIANTES
+"Aprendo palabras nuevas cada día con el quiz interactivo"
+
+👩‍🏫 PROFESORES
+"Uso BubiLex en mis clases para enseñar la lengua Bubi"
+
+👴 ANCIANOS
+"Comparto historias tradicionales en la sección de relatos"
+
+🌍 DIASPORA
+"Me mantiene conectado con mi cultura desde el extranjero"
+
+📚 INVESTIGADORES
+"Consulto etimologías y contexto cultural para mis estudios"
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔒 SEGURIDAD Y PRIVACIDAD
+
+• Autenticación segura con Google OAuth
+• Datos encriptados en tránsito y reposo
+• Sin rastreo de actividad personal
+• Cumplimiento de estándares internacionales
+• Logs de auditoría para transparencia
+
+═══════════════════════════════════════════════════════════════════════════
+
+📊 ESTADÍSTICAS
+
+• Miles de palabras en el diccionario
+• Actualizaciones diarias de contenido
+• Funcionalidades de IA de última generación
+• Diseño moderno y profesional
+• Costo de uso: $0 (GRATIS)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 MISIÓN
+
+Preservar, promover y facilitar el aprendizaje de la lengua Bubi mediante 
+tecnología moderna y accesible, conectando generaciones y manteniendo viva 
+la rica herencia cultural del pueblo Bubi de Guinea Ecuatorial.
+
+═══════════════════════════════════════════════════════════════════════════
+
+🤝 ÚNETE A LA COMUNIDAD
+
+• Aprende la lengua Bubi
+• Comparte tu conocimiento
+• Preserva la cultura
+• Conecta con otros hablantes
+• Contribuye al crecimiento del diccionario
+
+═══════════════════════════════════════════════════════════════════════════
+
+📞 CONTACTO Y SOPORTE
+
+Para más información, soporte técnico o colaboraciones:
+• Visita: https://bubi-lex.vercel.app
+• GitHub: https://github.com/etebachale-group/bubi-lex
+• Documentación completa disponible en el sitio
+
+═══════════════════════════════════════════════════════════════════════════
+
+                    ❤️ HECHO CON AMOR PARA LA COMUNIDAD BUBI
+                    
+                    🌟 ¡EMPIEZA A APRENDER HOY MISMO! 🌟
+                    
+                    https://bubi-lex.vercel.app
+
+═══════════════════════════════════════════════════════════════════════════

@@ -27,10 +27,11 @@ async function getNewsItem(id: string) {
   return data;
 }
 
-export default async function EditNewsPage({ params }: { params: { id: string } }) {
-  const newsItem = await getNewsItem(params.id);
+export default async function EditNewsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const newsItem = await getNewsItem(resolvedParams.id);
 
-  if (params.id !== 'new' && !newsItem) {
+  if (resolvedParams.id !== 'new' && !newsItem) {
     return (
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold">Noticia no encontrada</h1>
@@ -42,7 +43,7 @@ export default async function EditNewsPage({ params }: { params: { id: string } 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">
-        {params.id === 'new' ? 'Crear Nueva Noticia' : 'Editar Noticia'}
+        {resolvedParams.id === 'new' ? 'Crear Nueva Noticia' : 'Editar Noticia'}
       </h1>
       <NewsEditForm newsItem={newsItem} />
     </div>

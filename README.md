@@ -96,13 +96,14 @@ Ejecutar scripts SQL en Supabase (en orden):
 
 ## 📚 Documentación
 
-Ver **[DOCUMENTACION-COMPLETA-BUBILEX.md](./DOCUMENTACION-COMPLETA-BUBILEX.md)** para:
+Ver **[DOCUMENTACION-PROYECTO.md](./docs/DOCUMENTACION-PROYECTO.md)** para:
 
 - Guías detalladas de uso
 - Arquitectura del sistema
 - APIs y endpoints
 - Solución de problemas
 - Mantenimiento
+- Historial de cambios completo
 
 ---
 
@@ -215,7 +216,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 Para soporte y preguntas:
 
-- 📖 Ver [Documentación Completa](./DOCUMENTACION-COMPLETA-BUBILEX.md)
+- 📖 Ver [Documentación Completa](./docs/DOCUMENTACION-PROYECTO.md)
 - 🐛 Reportar issues en GitHub
 - 💬 Contactar al equipo de desarrollo
 

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, Share2, Calendar, Heart, MessageCircle, Newspaper as NewsIcon } from 'lucide-react';
-import Image from 'next/image';
 import { getSupabase } from '@/lib/db';
 import { toYouTubeEmbedUrl } from '@/lib/utils';
 import YouTubeEmbed from '@/components/youtube-embed';
@@ -188,38 +187,23 @@ const NewsViewModern = ({ news }: NewsViewProps) => {
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <Card className="glass-card border-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all hover:shadow-xl overflow-hidden group">
-              {/* Image/Video */}
-              {(item.image || item.video) && (
+              {/* Video */}
+              {item.video && (
                 <div className="relative overflow-hidden">
-                  {item.image && (
-                    <div className="relative h-56 sm:h-64 md:h-80 overflow-hidden">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        priority={index === 0}
+                  {item.video.startsWith('/uploads/') ? (
+                    <video 
+                      key={`video-${item.id}`}
+                      controls 
+                      className="w-full h-56 sm:h-64 md:h-80 object-cover" 
+                      src={item.video} 
+                    />
+                  ) : (
+                    <div className="h-56 sm:h-64 md:h-80" key={`youtube-${item.id}`}>
+                      <YouTubeEmbed
+                        url={toYouTubeEmbedUrl(item.video) || item.video}
+                        title={item.title}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     </div>
-                  )}
-                  {item.video && !item.image && (
-                    item.video.startsWith('/uploads/') ? (
-                      <video 
-                        key={`video-${item.id}`}
-                        controls 
-                        className="w-full h-56 sm:h-64 md:h-80 object-cover" 
-                        src={item.video} 
-                      />
-                    ) : (
-                      <div className="h-56 sm:h-64 md:h-80" key={`youtube-${item.id}`}>
-                        <YouTubeEmbed
-                          url={toYouTubeEmbedUrl(item.video) || item.video}
-                          title={item.title}
-                        />
-                      </div>
-                    )
                   )}
                 </div>
               )}
