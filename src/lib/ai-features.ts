@@ -9,6 +9,17 @@ interface AIConfig {
   maxTokens: number;
 }
 
+interface GrammarContext {
+  grammar: any[];
+  conjugations: any[];
+  patterns: any[];
+}
+
+// Cache de contexto gramatical
+let grammarContextCache: GrammarContext | null = null;
+let grammarCacheTime: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 // Configuración de IA (usar variables de entorno)
 const getAIConfig = (): AIConfig | null => {
   const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
@@ -26,6 +37,90 @@ export const isAIAvailable = (): boolean => {
   return !!getAIConfig();
 };
 
+// Cargar contexto gramatical desde la base de datos
+async function loadGrammarContext(): Promise<GrammarContext> {
+  // Usar cache si está disponible y no ha expirado
+  const now = Date.now();
+  if (grammarContextCache && (now - grammarCacheTime) < CACHE_DURATION) {
+    return grammarContextCache;
+  }
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/grammar?format=compact`, {
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to load grammar context');
+    }
+    
+    const data = await response.json();
+    grammarContextCache = data;
+    grammarCacheTime = now;
+    
+    return data;
+  } catch (error) {
+    logger.error('Error loading grammar context', error);
+    return { grammar: [], conjugations: [], patterns: [] };
+  }
+}
+
+// Formatear contexto gramatical para el prompt de IA
+function formatGrammarContext(context: GrammarContext): string {
+  let formatted = '\n\n=== CONTEXTO GRAMATICAL DEL IDIOMA BUBI ===\n\n';
+  
+  // Reglas gramaticales
+  if (context.grammar.length > 0) {
+    formatted += 'REGLAS GRAMATICALES:\n';
+    context.grammar.forEach(g => {
+      formatted += `\n[${g.category}] ${g.title}:\n`;
+      formatted += `${g.content}\n`;
+      if (g.rules) {
+        formatted += `Reglas:\n${g.rules}\n`;
+      }
+      if (g.examples) {
+        try {
+          const examples = JSON.parse(g.examples);
+          formatted += `Ejemplos: ${examples.map((e: any) => `"${e.bubi}" = "${e.spanish}"`).join(', ')}\n`;
+        } catch (e) {
+          // Ignorar errores de parsing
+        }
+      }
+    });
+  }
+  
+  // Conjugaciones verbales
+  if (context.conjugations.length > 0) {
+    formatted += '\n\nCONJUGACIONES VERBALES:\n';
+    const verbGroups = context.conjugations.reduce((acc: any, c: any) => {
+      if (!acc[c.verb]) acc[c.verb] = [];
+      acc[c.verb].push(c);
+      return acc;
+    }, {});
+    
+    Object.entries(verbGroups).forEach(([verb, conjugs]: [string, any]) => {
+      formatted += `\n${verb} (${conjugs[0].spanish}):\n`;
+      conjugs.forEach((c: any) => {
+        formatted += `  ${c.tense} - ${c.person}: ${c.form}\n`;
+      });
+    });
+  }
+  
+  // Patrones gramaticales
+  if (context.patterns.length > 0) {
+    formatted += '\n\nPATRONES GRAMATICALES:\n';
+    context.patterns.forEach(p => {
+      formatted += `\n${p.name} (${p.type}):\n`;
+      formatted += `Estructura: ${p.structure}\n`;
+    });
+  }
+  
+  formatted += '\n=== FIN DEL CONTEXTO GRAMATICAL ===\n\n';
+  
+  return formatted;
+}
+
 // Generar ejemplos contextuales con IA
 export async function generateContextualExamples(
   bubiWord: string,
@@ -39,10 +134,16 @@ export async function generateContextualExamples(
   }
 
   try {
-    const prompt = `Genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}" en español) en contextos culturales del pueblo Bubi de Guinea Ecuatorial. 
+    // Cargar contexto gramatical
+    const grammarContext = await loadGrammarContext();
+    const grammarPrompt = formatGrammarContext(grammarContext);
+    
+    const prompt = `${grammarPrompt}Usando el contexto gramatical del Bubi proporcionado arriba, genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}" en español) en contextos culturales del pueblo Bubi de Guinea Ecuatorial. 
+
+IMPORTANTE: Usa las reglas gramaticales, conjugaciones y patrones proporcionados para crear ejemplos correctos.
 
 Formato: Cada ejemplo debe tener:
-1. Frase en Bubi usando la palabra
+1. Frase en Bubi usando la palabra (siguiendo las reglas gramaticales)
 2. Traducción al español
 3. Contexto cultural breve
 
@@ -166,11 +267,15 @@ export async function contextualTranslation(
   }
 
   try {
-    const prompt = `Traduce la palabra Bubi "${bubiWord}" al español considerando este contexto: "${context}".
+    // Cargar contexto gramatical
+    const grammarContext = await loadGrammarContext();
+    const grammarPrompt = formatGrammarContext(grammarContext);
+    
+    const prompt = `${grammarPrompt}Usando el contexto gramatical del Bubi proporcionado, traduce la palabra Bubi "${bubiWord}" al español considerando este contexto: "${context}".
 
 Proporciona:
 1. Traducción más apropiada para el contexto
-2. Breve explicación de por qué es la mejor traducción
+2. Breve explicación de por qué es la mejor traducción (considerando las reglas gramaticales)
 3. 2-3 traducciones alternativas
 
 Formato JSON:

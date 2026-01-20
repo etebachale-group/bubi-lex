@@ -90,7 +90,8 @@ Ejecutar scripts SQL en Supabase (en orden):
 1. `db/schema.sql` - Esquema base
 2. `db/add-comments-system.sql` - Sistema de comentarios
 3. `db/add-stories-system.sql` - Sistema de relatos
-4. `db/audit-schema.sql` - Logs de auditoría
+4. `db/add-grammar-system.sql` - Sistema de gramática para IA
+5. `db/audit-schema.sql` - Logs de auditoría
 
 ---
 

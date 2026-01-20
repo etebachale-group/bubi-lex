@@ -113,29 +113,29 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
   const getReplies = (parentId: number) => comments.filter(c => c.parent_id === parentId);
 
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
-    <div className={`${isReply ? 'ml-8 mt-3' : 'mb-4'}`}>
+    <div className={`${isReply ? 'ml-4 sm:ml-8 mt-3' : 'mb-4'}`}>
       <Card className="glass-card border">
-        <CardContent className="pt-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
-              <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+        <CardContent className="pt-3 sm:pt-4 px-3 sm:px-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex-shrink-0">
+              <User className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">{comment.author_name}</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1.5 sm:mb-1">
+                <span className="font-semibold text-xs sm:text-sm truncate">{comment.author_name}</span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {formatDate(comment.created_at)}
+                  <Clock className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{formatDate(comment.created_at)}</span>
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed break-words">
                 {comment.content}
               </p>
               {!isReply && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="mt-2 text-xs"
+                  className="mt-2 text-xs h-7 px-2 sm:px-3"
                   onClick={() => {
                     setReplyTo(comment.id);
                     setShowForm(true);
@@ -157,16 +157,17 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
   );
 
   return (
-    <div className="mt-8 pt-8 border-t">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold flex items-center gap-2">
-          <MessageCircle className="w-6 h-6" />
+    <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+        <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           Comentarios ({comments.length})
         </h3>
         {!showForm && (
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto"
+            size="sm"
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             Comentar
@@ -176,12 +177,12 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
 
       {/* Formulario de comentario */}
       {showForm && (
-        <Card className="glass-card border-2 border-purple-300 dark:border-purple-700 mb-6">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="glass-card border-2 border-purple-300 dark:border-purple-700 mb-4 sm:mb-6">
+          <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {replyTo && (
-                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                  <span className="text-sm text-purple-600 dark:text-purple-400">
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <span className="text-xs sm:text-sm text-purple-600 dark:text-purple-400">
                     Respondiendo a un comentario
                   </span>
                   <Button
@@ -189,13 +190,14 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setReplyTo(null)}
+                    className="h-7 text-xs"
                   >
                     Cancelar
                   </Button>
                 </div>
               )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Input
                     placeholder="Tu nombre *"
@@ -203,6 +205,7 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                     onChange={(e) => setFormData({ ...formData, author_name: e.target.value })}
                     required
                     maxLength={100}
+                    className="text-sm"
                   />
                 </div>
                 <div>
@@ -212,6 +215,7 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                     value={formData.author_email}
                     onChange={(e) => setFormData({ ...formData, author_email: e.target.value })}
                     maxLength={255}
+                    className="text-sm"
                   />
                 </div>
               </div>
@@ -223,9 +227,10 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                 required
                 rows={4}
                 maxLength={1000}
+                className="text-sm resize-none"
               />
               
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
                   Tu comentario será visible después de ser aprobado
                 </p>
@@ -238,19 +243,20 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                       setReplyTo(null);
                       setFormData({ author_name: '', author_email: '', content: '' });
                     }}
+                    className="flex-1 sm:flex-none text-sm h-9"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex-1 sm:flex-none text-sm h-9"
                   >
                     {submitting ? (
                       'Enviando...'
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                         Enviar
                       </>
                     )}
@@ -264,26 +270,28 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
 
       {/* Lista de comentarios */}
       {loading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Cargando comentarios...</p>
+        <div className="text-center py-6 sm:py-8">
+          <p className="text-sm text-muted-foreground">Cargando comentarios...</p>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-12">
-          <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-8 sm:py-12">
+          <MessageCircle className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm sm:text-base text-muted-foreground mb-4">
             Sé el primero en comentar esta noticia
           </p>
           {!showForm && (
             <Button
               onClick={() => setShowForm(true)}
               variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
             >
               Escribir comentario
             </Button>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {topLevelComments.map(comment => (
             <CommentItem key={comment.id} comment={comment} />
           ))}

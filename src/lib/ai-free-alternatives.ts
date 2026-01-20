@@ -4,6 +4,20 @@
 import { logger } from './logger';
 
 // ============================================
+// INTERFACES Y CACHE
+// ============================================
+
+interface GrammarContext {
+  grammar: any[];
+  conjugations: any[];
+  patterns: any[];
+}
+
+let grammarContextCache: GrammarContext | null = null;
+let grammarCacheTime: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+// ============================================
 // 1. HUGGING FACE (Gratuito con límites)
 // ============================================
 
@@ -166,8 +180,12 @@ export async function generateExamplesWithFreeAI(
   spanishTranslation: string,
   count: number = 3
 ): Promise<string[]> {
-  const prompt = `Genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}"). 
-Cada ejemplo debe ser una frase corta en contexto cultural Bubi.`;
+  // Cargar contexto gramatical
+  const grammarContext = await loadGrammarContextFree();
+  const grammarPrompt = formatGrammarContextFree(grammarContext);
+  
+  const prompt = `${grammarPrompt}Usando el contexto gramatical del Bubi proporcionado, genera ${count} ejemplos de uso de la palabra "${bubiWord}" (que significa "${spanishTranslation}"). 
+Cada ejemplo debe ser una frase corta en contexto cultural Bubi, siguiendo las reglas gramaticales.`;
 
   try {
     // Intentar en orden de preferencia
@@ -423,4 +441,72 @@ export async function checkFreeAIAvailability(): Promise<{
   }
 
   return results;
+}
+
+
+// ============================================
+// FUNCIONES DE CONTEXTO GRAMATICAL
+// ============================================
+
+async function loadGrammarContextFree(): Promise<GrammarContext> {
+  const now = Date.now();
+  if (grammarContextCache && (now - grammarCacheTime) < CACHE_DURATION) {
+    return grammarContextCache;
+  }
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/grammar?format=compact`, {
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to load grammar context');
+    }
+    
+    const data = await response.json();
+    grammarContextCache = data;
+    grammarCacheTime = now;
+    
+    return data;
+  } catch (error) {
+    logger.error('Error loading grammar context', error);
+    return { grammar: [], conjugations: [], patterns: [] };
+  }
+}
+
+function formatGrammarContextFree(context: GrammarContext): string {
+  let formatted = '\n\n=== CONTEXTO GRAMATICAL DEL IDIOMA BUBI ===\n\n';
+  
+  if (context.grammar.length > 0) {
+    formatted += 'REGLAS GRAMATICALES:\n';
+    context.grammar.forEach(g => {
+      formatted += `\n[${g.category}] ${g.title}: ${g.content}\n`;
+      if (g.rules) formatted += `Reglas: ${g.rules}\n`;
+    });
+  }
+  
+  if (context.conjugations.length > 0) {
+    formatted += '\n\nCONJUGACIONES VERBALES:\n';
+    const verbGroups = context.conjugations.reduce((acc: any, c: any) => {
+      if (!acc[c.verb]) acc[c.verb] = [];
+      acc[c.verb].push(c);
+      return acc;
+    }, {});
+    
+    Object.entries(verbGroups).forEach(([verb, conjugs]: [string, any]) => {
+      formatted += `${verb}: `;
+      formatted += conjugs.map((c: any) => `${c.tense}-${c.person}=${c.form}`).join(', ');
+      formatted += '\n';
+    });
+  }
+  
+  if (context.patterns.length > 0) {
+    formatted += '\n\nPATRONES: ';
+    formatted += context.patterns.map((p: any) => `${p.name}(${p.structure})`).join(', ');
+    formatted += '\n';
+  }
+  
+  formatted += '\n=== FIN DEL CONTEXTO ===\n\n';
+  return formatted;
 }

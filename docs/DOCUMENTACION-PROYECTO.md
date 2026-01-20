@@ -98,6 +98,17 @@ BubiLex es un diccionario digital moderno e interactivo de la lengua Bubi con fu
 - [x] Quiz interactivos
 - [x] Traductor bidireccional contextual
 - [x] Generación de pronunciación IPA
+- [x] Sistema de gramática Bubi para contexto de IA
+
+#### 7. Sistema de Gramática Bubi (NUEVO)
+- [x] Base de datos de reglas gramaticales
+- [x] Conjugaciones verbales
+- [x] Patrones de estructura de oraciones
+- [x] Interfaz de administración completa
+- [x] Integración con funciones de IA
+- [x] Cache de contexto gramatical
+- [x] API pública y admin
+- [x] Auditoría de cambios
 - [x] Etimología de palabras
 - [x] Ejemplos contextualizados
 
@@ -894,3 +905,73 @@ BubiLex está **100% funcional** y **listo para producción**.
 **¡Proyecto completado exitosamente!** 🎊
 
 **Hecho con ❤️ para preservar la lengua y cultura Bubi**
+
+
+---
+
+## 📖 Sistema de Gramática Bubi para IA
+
+### Descripción
+Sistema avanzado que proporciona contexto gramatical estructurado a las funciones de IA, permitiendo generar traducciones, ejemplos y explicaciones más precisas y culturalmente apropiadas.
+
+### Componentes
+
+#### 1. Base de Datos
+- **`bubi_grammar`**: Reglas gramaticales generales
+- **`bubi_verb_conjugations`**: Conjugaciones verbales
+- **`bubi_grammar_patterns`**: Patrones de estructura
+
+#### 2. APIs
+- **Pública:** `/api/grammar` (GET con formatos full/compact)
+- **Admin:** `/api/admin/grammar` (CRUD completo)
+- **Individual:** `/api/admin/grammar/[id]` (GET, PUT, DELETE)
+
+#### 3. Interfaz de Administración
+- **Ruta:** `/admin/grammar`
+- **Características:**
+  - Lista con búsqueda en tiempo real
+  - Filtrado por categoría
+  - Formulario inline de creación/edición
+  - Activar/desactivar entradas
+  - Ordenamiento personalizado
+  - Vista previa de ejemplos
+
+#### 4. Integración con IA
+- Cache de contexto gramatical (5 minutos)
+- Formato compacto para prompts
+- Funciones modificadas:
+  - `generateContextualExamples()`
+  - `contextualTranslation()`
+  - `generateExamplesWithFreeAI()`
+
+### Datos Iniciales
+- 5 reglas gramaticales
+- 6 conjugaciones verbales
+- 3 patrones de estructura
+
+### Beneficios
+- ✅ Traducciones más precisas
+- ✅ Ejemplos gramaticalmente correctos
+- ✅ Respuestas consistentes
+- ✅ Contexto cultural apropiado
+
+### Documentación Completa
+Ver: `docs/SISTEMA-GRAMATICA-IA.md`
+
+---
+
+## 📝 Documentos Relacionados
+
+- **Sistema de Gramática:** `docs/SISTEMA-GRAMATICA-IA.md`
+- **Sistema de Audit Logs:** `docs/SISTEMA-AUDIT-LOGS.md`
+- **Actualización en Tiempo Real:** `docs/ACTUALIZACION-TIEMPO-REAL.md`
+- **Cambios Recientes:** `docs/CAMBIOS-20-ENE-2026.md`
+- **Organización Final:** `docs/ORGANIZACION-FINAL.md`
+- **Resumen de Depuración:** `docs/RESUMEN-DEPURACION.md`
+- **Material Promocional:** `docs/PROMOCION-BUBILEX.txt`
+
+---
+
+**Última actualización:** 20 de enero de 2026  
+**Versión:** 2.3  
+**Estado:** ✅ Sistema de Gramática Implementado

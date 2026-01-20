@@ -52,6 +52,12 @@ export default async function AdminPage() {
     .select('*', { count: 'exact', head: true })
     .eq('can_edit_dictionary', true);
 
+  // Obtener cantidad de entradas de gramática
+  const { count: grammarCount } = await supabase
+    .from('bubi_grammar')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true);
+
   const adminSections = [
     {
       title: 'Diccionario',
@@ -60,6 +66,14 @@ export default async function AdminPage() {
       icon: BookOpen,
       color: 'from-blue-500 to-cyan-500',
       count: wordsCount || 0
+    },
+    {
+      title: 'Gramática Bubi',
+      description: 'Información gramatical para la IA',
+      href: '/admin/grammar',
+      icon: BookText,
+      color: 'from-indigo-500 to-blue-500',
+      count: grammarCount || 0
     },
     {
       title: 'Colaboradores',
