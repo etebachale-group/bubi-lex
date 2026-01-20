@@ -163,24 +163,24 @@ export default function GrammarManagement() {
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex-1 w-full sm:w-auto">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="w-full">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Buscar en gramática..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
         </div>
         
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-2 border rounded-md bg-background"
+            className="flex-1 px-3 py-2 border rounded-md bg-background text-sm"
           >
             <option value="">Todas las categorías</option>
             {categories.map(cat => (
@@ -188,9 +188,9 @@ export default function GrammarManagement() {
             ))}
           </select>
           
-          <Button onClick={() => setShowForm(!showForm)} className="gap-2">
+          <Button onClick={() => setShowForm(!showForm)} className="gap-2 w-full sm:w-auto">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {showForm ? 'Cancelar' : 'Nueva Entrada'}
+            <span className="whitespace-nowrap">{showForm ? 'Cancelar' : 'Nueva Entrada'}</span>
           </Button>
         </div>
       </div>
@@ -302,11 +302,11 @@ export default function GrammarManagement() {
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={resetForm}>
+              <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
-                <Button type="submit" className="gap-2">
+                <Button type="submit" className="gap-2 w-full sm:w-auto">
                   <Save className="w-4 h-4" />
                   {editingId ? 'Actualizar' : 'Crear'}
                 </Button>
@@ -318,7 +318,7 @@ export default function GrammarManagement() {
 
       {/* Entries List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold">
+        <h2 className="text-lg sm:text-xl font-bold">
           Entradas de Gramática ({filteredEntries.length})
         </h2>
         
@@ -326,16 +326,16 @@ export default function GrammarManagement() {
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay entradas de gramática</p>
+              <p className="text-sm sm:text-base">No hay entradas de gramática</p>
             </CardContent>
           </Card>
         ) : (
           filteredEntries.map((entry) => (
             <Card key={entry.id} className="border-2">
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+              <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded">
                         {entry.category}
                       </span>
@@ -351,39 +351,42 @@ export default function GrammarManagement() {
                       )}
                     </div>
                     
-                    <h3 className="text-lg font-bold mb-2">{entry.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{entry.content}</p>
+                    <h3 className="text-base sm:text-lg font-bold mb-2 break-words">{entry.title}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-3 break-words">{entry.content}</p>
                     
                     {entry.rules && (
                       <div className="mb-2">
                         <p className="text-xs font-semibold mb-1">Reglas:</p>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.rules}</pre>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words overflow-x-auto">{entry.rules}</pre>
                       </div>
                     )}
                     
                     {entry.examples && (
                       <details className="text-xs">
                         <summary className="cursor-pointer font-semibold mb-1">Ver ejemplos</summary>
-                        <pre className="text-muted-foreground whitespace-pre-wrap mt-1">{entry.examples}</pre>
+                        <pre className="text-muted-foreground whitespace-pre-wrap break-words overflow-x-auto mt-1 max-w-full">{entry.examples}</pre>
                       </details>
                     )}
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(entry)}
+                      className="flex-1 sm:flex-none gap-1"
                     >
                       <Edit className="w-4 h-4" />
+                      <span className="sm:hidden">Editar</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleDelete(entry.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="flex-1 sm:flex-none text-red-600 hover:text-red-700 gap-1"
                     >
                       <Trash2 className="w-4 h-4" />
+                      <span className="sm:hidden">Eliminar</span>
                     </Button>
                   </div>
                 </div>

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageCircle, Send, User, Clock } from 'lucide-react';
+import { MessageCircle, Send, User, Clock, LogIn } from 'lucide-react';
+import Link from 'next/link';
 
 interface Comment {
   id: number;
@@ -20,17 +21,14 @@ interface NewsCommentsProps {
 }
 
 export default function NewsComments({ newsId }: NewsCommentsProps) {
+  const { data: session, status } = useSession();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [replyTo, setReplyTo] = useState<number | null>(null);
   
-  const [formData, setFormData] = useState({
-    author_name: '',
-    author_email: '',
-    content: '',
-  });
+  const [content, setContent] = useState('');
 
   useEffect(() => {
     loadComments();
@@ -53,8 +51,13 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.author_name.trim() || !formData.content.trim()) {
-      alert('Por favor completa todos los campos requeridos');
+    if (!session) {
+      alert('Debes iniciar sesión para comentar');
+      return;
+    }
+    
+    if (!content.trim()) {
+      alert('Por favor escribe un comentario');
       return;
     }
 
@@ -64,7 +67,9 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          author_name: session.user?.name || 'Usuario',
+          author_email: session.user?.email || '',
+          content: content.trim(),
           parent_id: replyTo,
         }),
       });
@@ -78,7 +83,7 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
       alert(result.message || 'Comentario enviado correctamente');
       
       // Limpiar formulario
-      setFormData({ author_name: '', author_email: '', content: '' });
+      setContent('');
       setShowForm(false);
       setReplyTo(null);
       
@@ -132,17 +137,30 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                 {comment.content}
               </p>
               {!isReply && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 text-xs h-7 px-2 sm:px-3"
-                  onClick={() => {
-                    setReplyTo(comment.id);
-                    setShowForm(true);
-                  }}
-                >
-                  Responder
-                </Button>
+                session ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 text-xs h-7 px-2 sm:px-3"
+                    onClick={() => {
+                      setReplyTo(comment.id);
+                      setShowForm(true);
+                    }}
+                  >
+                    Responder
+                  </Button>
+                ) : (
+                  <Link href="/admin/login?next=/news">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 text-xs h-7 px-2 sm:px-3"
+                    >
+                      <LogIn className="w-3 h-3 mr-1" />
+                      Iniciar sesión para responder
+                    </Button>
+                  </Link>
+                )
               )}
             </div>
           </div>
@@ -164,19 +182,32 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
           Comentarios ({comments.length})
         </h3>
         {!showForm && (
-          <Button
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto"
-            size="sm"
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Comentar
-          </Button>
+          session ? (
+            <Button
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto"
+              size="sm"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Comentar
+            </Button>
+          ) : (
+            <Link href="/admin/login?next=/news">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                size="sm"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Iniciar sesión para comentar
+              </Button>
+            </Link>
+          )
         )}
       </div>
 
       {/* Formulario de comentario */}
-      {showForm && (
+      {showForm && session && (
         <Card className="glass-card border-2 border-purple-300 dark:border-purple-700 mb-4 sm:mb-6">
           <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -197,33 +228,22 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                 </div>
               )}
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <Input
-                    placeholder="Tu nombre *"
-                    value={formData.author_name}
-                    onChange={(e) => setFormData({ ...formData, author_name: e.target.value })}
-                    required
-                    maxLength={100}
-                    className="text-sm"
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Tu email (opcional)"
-                    value={formData.author_email}
-                    onChange={(e) => setFormData({ ...formData, author_email: e.target.value })}
-                    maxLength={255}
-                    className="text-sm"
-                  />
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
+                    <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{session.user?.name || 'Usuario'}</p>
+                    <p className="text-xs text-muted-foreground">{session.user?.email}</p>
+                  </div>
                 </div>
               </div>
               
               <Textarea
                 placeholder="Escribe tu comentario... *"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 required
                 rows={4}
                 maxLength={1000}
@@ -241,7 +261,7 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
                     onClick={() => {
                       setShowForm(false);
                       setReplyTo(null);
-                      setFormData({ author_name: '', author_email: '', content: '' });
+                      setContent('');
                     }}
                     className="flex-1 sm:flex-none text-sm h-9"
                   >
@@ -280,14 +300,27 @@ export default function NewsComments({ newsId }: NewsCommentsProps) {
             Sé el primero en comentar esta noticia
           </p>
           {!showForm && (
-            <Button
-              onClick={() => setShowForm(true)}
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto"
-            >
-              Escribir comentario
-            </Button>
+            session ? (
+              <Button
+                onClick={() => setShowForm(true)}
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                Escribir comentario
+              </Button>
+            ) : (
+              <Link href="/admin/login?next=/news">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Iniciar sesión para comentar
+                </Button>
+              </Link>
+            )
           )}
         </div>
       ) : (
