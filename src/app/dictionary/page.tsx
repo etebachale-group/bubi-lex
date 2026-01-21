@@ -34,8 +34,16 @@ interface DictionaryRow {
   id: number;
   bubi: string;
   spanish: string;
+  word_type: string | null;
+  gender: string | null;
+  number: string | null;
+  nominal_class: string | null;
+  plural_form: string | null;
   ipa: string | null;
+  examples: string | null;
+  variants: string | null;
   notes: string | null;
+  created_by: string | null;
 }
 
 function toNumber(value: string | string[] | undefined, fallback: number) {
@@ -75,7 +83,7 @@ export default async function DictionaryPage({ searchParams }: { searchParams: S
     // Query normal para listar todo
     const { data, count, error } = await supabase
       .from('dictionary_entries')
-      .select('id, bubi, spanish, ipa, notes', { count: 'exact' })
+      .select('id, bubi, spanish, word_type, gender, number, nominal_class, plural_form, ipa, examples, variants, notes, created_by', { count: 'exact' })
       .order(orderBy, { ascending: true })
       .range(offset, offset + limit - 1);
 

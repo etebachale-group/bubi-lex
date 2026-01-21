@@ -13,8 +13,16 @@ interface DictionaryEntry {
   id: number;
   bubi: string;
   spanish: string;
+  word_type: string | null;
+  gender: string | null;
+  number: string | null;
+  nominal_class: string | null;
+  plural_form: string | null;
   ipa: string | null;
+  examples: string | null;
+  variants: string | null;
   notes: string | null;
+  created_by: string | null;
 }
 
 interface DictionaryViewProps {
@@ -86,9 +94,15 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
     const term = searchTerm.toLowerCase();
     
     if (searchLang === 'bubi') {
-      return entry.bubi.toLowerCase().includes(term);
+      // Buscar en palabra Bubi y variantes
+      const bubiMatch = entry.bubi.toLowerCase().includes(term);
+      const variantsMatch = entry.variants?.toLowerCase().includes(term);
+      return bubiMatch || variantsMatch;
     } else {
-      return entry.spanish.toLowerCase().includes(term);
+      // Buscar en español: definición y notas (que contienen "Español: palabra")
+      const spanishMatch = entry.spanish.toLowerCase().includes(term);
+      const notesMatch = entry.notes?.toLowerCase().includes(term);
+      return spanishMatch || notesMatch;
     }
   });
 
@@ -321,12 +335,37 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                 {/* Decorative gradient background */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
                 
-                {/* Bubi Word */}
+                {/* Bubi Word with Type and Class */}
                 <div className="mb-5">
                   <div className="flex items-start justify-between mb-2 gap-2">
-                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-600 dark:from-blue-400 dark:via-cyan-400 dark:to-teal-400 bg-clip-text text-transparent leading-tight flex-1 break-words">
-                      {entry.bubi}
-                    </h3>
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-600 dark:from-blue-400 dark:via-cyan-400 dark:to-teal-400 bg-clip-text text-transparent leading-tight break-words">
+                        {entry.bubi}
+                      </h3>
+                      {/* Grammatical Info */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {entry.word_type && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {entry.word_type}
+                          </span>
+                        )}
+                        {entry.gender && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            {entry.gender}
+                          </span>
+                        )}
+                        {entry.nominal_class && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">
+                            {entry.nominal_class}
+                          </span>
+                        )}
+                        {entry.number && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
+                            {entry.number}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
@@ -355,6 +394,26 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                   <IPAPronunciation entry={entry} />
                 </div>
 
+                {/* Variants */}
+                {entry.variants && (
+                  <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-200 dark:border-indigo-800">
+                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1 uppercase tracking-wider">Variantes</p>
+                    <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                      {entry.variants}
+                    </p>
+                  </div>
+                )}
+
+                {/* Plural Form */}
+                {entry.plural_form && (
+                  <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1 uppercase tracking-wider">Plural</p>
+                    <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                      {entry.plural_form}
+                    </p>
+                  </div>
+                )}
+
                 {/* Spanish Translation */}
                 <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-rose-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-sm">
                   <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-wider">Español</p>
@@ -363,8 +422,22 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                   </p>
                 </div>
 
+                {/* Examples */}
+                {entry.examples && (
+                  <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-200 dark:border-green-800 shadow-sm">
+                    <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2 uppercase tracking-wider">Ejemplos</p>
+                    <div className="space-y-2">
+                      {entry.examples.split(' | ').map((example, idx) => (
+                        <p key={idx} className="text-sm text-green-900 dark:text-green-100 leading-relaxed pl-3 border-l-2 border-green-400 dark:border-green-600">
+                          {example}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Notes */}
-                {entry.notes && (
+                {entry.notes && !entry.notes.startsWith('Español:') && (
                   <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-200 dark:border-amber-800 shadow-sm mb-4">
                     <div className="flex items-start gap-2">
                       <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
@@ -375,6 +448,17 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                   </div>
                 )}
 
+                {/* Source Badge */}
+                {entry.created_by && (
+                  <div className="mb-4">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      {entry.created_by === 'import-script' ? '📚 Bubi-Español' : 
+                       entry.created_by === 'import-espanol-bubi' ? '📖 Español-Bubi' : 
+                       '✍️ Colaborador'}
+                    </span>
+                  </div>
+                )}
+
                 {/* AI Features Link */}
                 <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800">
                   <a 
@@ -382,7 +466,7 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                     className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-2 group/link transition-all"
                   >
                     <Sparkles className="w-4 h-4 group-hover/link:rotate-12 transition-transform" />
-                    <span className="group-hover/link:underline">Ver ejemplos con IA</span>
+                    <span className="group-hover/link:underline">Ver más con IA</span>
                   </a>
                 </div>
               </CardContent>

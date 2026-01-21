@@ -48,7 +48,7 @@ export async function GET(req: Request) {
     const supabase = getSupabase();
     let query = supabase
       .from('dictionary_entries')
-      .select('id, bubi, spanish, ipa, notes', { count: 'exact' });
+      .select('id, bubi, spanish, word_type, gender, number, nominal_class, plural_form, ipa, examples, variants, notes, created_by', { count: 'exact' });
 
     if (q) {
       const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
