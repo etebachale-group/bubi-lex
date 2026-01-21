@@ -9,6 +9,28 @@ Diccionario digital interactivo de la lengua Bubi con funcionalidades avanzadas 
 
 ---
 
+## 🚨 ACCIÓN REQUERIDA (22 Enero 2026)
+
+### Sistema de Colaboradores - Instalación Pendiente
+
+**Problema**: Error HTTP 500 al agregar colaboradores  
+**Causa**: Tabla `user_roles` no existe en Supabase  
+**Solución**: Ejecutar script SQL
+
+#### ⚡ Pasos Rápidos:
+
+1. Ir a Supabase → SQL Editor
+2. Abrir archivo: `db/add-user-roles-system.sql`
+3. **CAMBIAR** email del admin (línea 71)
+4. Ejecutar script completo
+5. Verificar tabla creada
+
+#### 📖 Guía Completa:
+
+Ver: `docs/GUIA-INSTALACION-COLABORADORES.md`
+
+---
+
 ## ✨ Características
 
 ### Diccionario
@@ -20,9 +42,9 @@ Diccionario digital interactivo de la lengua Bubi con funcionalidades avanzadas 
 - ⚡ **Búsqueda Instantánea** - Sin paginación, filtrado local
 
 ### Inteligencia Artificial
-- 🤖 **Traductor Español → Bubi** - Con contexto gramatical completo
+- 🤖 **Traductor Español → Bubi** - Usa diccionario real (NO inventa traducciones)
 - 📚 **Generación de Ejemplos** - Contextuales y culturalmente apropiados
-- 🎓 **Sistema de Aprendizaje** - Sesiones personalizadas y quiz
+- 🎓 **Sistema de Lecciones** - 12 lecciones estructuradas con quiz progresivo
 - 🗣️ **Pronunciación Guiada** - IPA con explicaciones detalladas
 - 🌐 **Múltiples Proveedores** - OpenAI, Groq, Together AI, Ollama
 

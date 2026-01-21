@@ -27,44 +27,31 @@ Empezar Quiz (5 preguntas)
 
 ---
 
-### 2. ⚠️ Sistema de Colaboradores - REQUIERE VERIFICACIÓN
+### 2. ✅ Sistema de Colaboradores - SOLUCIÓN IMPLEMENTADA
 
-**Problema Reportado**: "El sistema para añadir colaborador no funciona"
+**Problema Reportado**: "El sistema para añadir colaborador no funciona"  
+**Error**: HTTP 500 al intentar agregar colaboradores
 
-**Análisis**:
-- ✅ Componente UI correcto (`collaborators-management.tsx`)
-- ✅ API endpoint correcto (`/api/admin/collaborators/route.ts`)
-- ✅ Validación de email implementada
-- ✅ Manejo de errores presente
+**Causa Identificada**: La tabla `user_roles` NO EXISTE en Supabase
 
-**Posibles Causas**:
-1. **Tabla `user_roles` no existe o falta columna**
-   - Verificar que existe la tabla en Supabase
-   - Verificar columnas: `user_id`, `email`, `can_edit_dictionary`, `is_admin`, `created_at`
+**Solución Implementada**:
 
-2. **Permisos de Supabase**
-   - El usuario admin debe tener permisos para INSERT en `user_roles`
+1. **Creado archivo SQL completo**: `db/add-user-roles-system.sql`
+   - Crea tabla `user_roles` con todas las columnas necesarias
+   - Agrega índices para rendimiento
+   - Configura políticas RLS (Row Level Security)
+   - Incluye trigger para actualizar `updated_at` automáticamente
+   - Inserta administrador inicial
 
-3. **Sesión de admin no válida**
-   - Verificar que `session.isAdmin` es true
+2. **Creada guía de instalación**: `docs/GUIA-INSTALACION-COLABORADORES.md`
+   - Paso a paso para ejecutar el script en Supabase
+   - Instrucciones de verificación
+   - Solución de problemas comunes
+   - Comandos SQL útiles
 
-**Cómo Probar**:
-```bash
-# 1. Verificar tabla en Supabase
-SELECT * FROM user_roles LIMIT 1;
-
-# 2. Verificar permisos
-# En Supabase Dashboard → Authentication → Policies
-
-# 3. Probar manualmente
-curl -X POST http://localhost:3000/api/admin/collaborators \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com"}'
-```
-
-**Schema Necesario**:
+**Estructura de la Tabla**:
 ```sql
-CREATE TABLE IF NOT EXISTS user_roles (
+CREATE TABLE user_roles (
   user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   can_edit_dictionary BOOLEAN DEFAULT FALSE,
@@ -73,6 +60,18 @@ CREATE TABLE IF NOT EXISTS user_roles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
+
+**Pasos para el Usuario**:
+1. Ir a Supabase → SQL Editor
+2. Abrir `db/add-user-roles-system.sql`
+3. **IMPORTANTE**: Cambiar `'admin@bubilex.com'` por tu email real
+4. Ejecutar el script completo
+5. Verificar que se creó la tabla
+6. Probar agregar colaborador en la aplicación
+
+**Archivos Creados**:
+- `db/add-user-roles-system.sql` - Script SQL completo
+- `docs/GUIA-INSTALACION-COLABORADORES.md` - Guía detallada
 
 ---
 
@@ -112,42 +111,43 @@ CREATE TABLE IF NOT EXISTS user_roles (
 
 ### Para el Usuario:
 
-1. **Verificar Sistema de Colaboradores**:
+1. **✅ INSTALAR SISTEMA DE COLABORADORES** (CRÍTICO):
+   - Seguir la guía: `docs/GUIA-INSTALACION-COLABORADORES.md`
+   - Ejecutar script: `db/add-user-roles-system.sql` en Supabase
+   - **NO OLVIDAR**: Cambiar el email del admin en el script
+   - Verificar que la tabla se creó correctamente
+
+2. **Probar Sistema de Colaboradores**:
    - Ir a: Admin → Colaboradores
-   - Intentar agregar un email
-   - Si falla, abrir consola del navegador (F12)
-   - Copiar el error exacto y compartirlo
+   - Intentar agregar un email de prueba
+   - Debería funcionar sin errores
 
-2. **Verificar Base de Datos**:
-   - Ir a Supabase Dashboard
-   - Table Editor → Buscar tabla `user_roles`
-   - Verificar que existe y tiene las columnas correctas
-
-3. **Probar Formulario de Palabras**:
-   - El formulario ya está completo
-   - Si falta algún campo específico, indicar cuál
-
-### Para el Desarrollador:
-
-Si el sistema de colaboradores no funciona:
-
-```typescript
-// Agregar logs para debugging en el API
-console.log('Session:', session);
-console.log('Email to add:', email);
-console.log('Supabase response:', data, error);
-```
+3. **Formulario de Palabras**:
+   - Ya está completo con todos los campos
+   - No requiere cambios adicionales
 
 ---
 
-## Archivos Modificados
+## Archivos Modificados y Creados
 
+### Archivos Creados:
+1. `db/add-user-roles-system.sql`
+   - Script SQL completo para crear tabla user_roles
+   - Incluye índices, triggers, y políticas RLS
+   - Inserta administrador inicial
+
+2. `docs/GUIA-INSTALACION-COLABORADORES.md`
+   - Guía paso a paso para instalar el sistema
+   - Solución de problemas comunes
+   - Comandos SQL útiles
+
+### Archivos Modificados:
 1. `src/components/ai/learning-system.tsx`
    - Ajustado botón de quiz para móvil
    - Padding y texto responsive
 
 2. `docs/RESUMEN-AJUSTES-FINALES.md`
-   - Este documento de resumen
+   - Actualizado con solución completa del sistema de colaboradores
 
 ---
 
@@ -155,15 +155,25 @@ console.log('Supabase response:', data, error);
 
 | Problema | Estado | Acción |
 |----------|--------|--------|
-| Botón Quiz Móvil | ✅ RESUELTO | Implementado |
-| Sistema Colaboradores | ⚠️ REQUIERE VERIFICACIÓN | Necesita prueba del usuario |
+| Botón Quiz Móvil | ✅ RESUELTO | Implementado y funcionando |
+| Sistema Colaboradores | ✅ SOLUCIÓN LISTA | Usuario debe ejecutar script SQL |
 | Formulario Palabras | ✅ YA COMPLETO | No requiere cambios |
 
 ---
 
 ## Próximos Pasos
 
-1. Usuario prueba sistema de colaboradores
-2. Si falla, compartir error de consola
-3. Verificar tabla `user_roles` en Supabase
-4. Aplicar fix específico según el error encontrado
+1. ✅ **CRÍTICO**: Ejecutar `db/add-user-roles-system.sql` en Supabase
+   - Seguir guía: `docs/GUIA-INSTALACION-COLABORADORES.md`
+   - Cambiar email del admin antes de ejecutar
+   - Verificar que la tabla se creó correctamente
+
+2. Probar sistema de colaboradores en la aplicación
+   - Ir a Admin → Colaboradores
+   - Agregar un email de prueba
+   - Verificar que funciona sin errores
+
+3. Si hay algún problema:
+   - Abrir consola del navegador (F12)
+   - Copiar error completo
+   - Compartir para diagnóstico adicional

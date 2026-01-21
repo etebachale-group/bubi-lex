@@ -4,6 +4,27 @@ Scripts SQL y documentación para el proyecto Bubi-Lex.
 
 ---
 
+## 🚨 ACCIÓN REQUERIDA (22 Enero 2026)
+
+### Sistema de Colaboradores - ERROR HTTP 500
+
+**Problema**: No se pueden agregar colaboradores  
+**Causa**: Tabla `user_roles` no existe  
+**Solución**: Ejecutar script SQL
+
+#### ⚡ Pasos Rápidos:
+
+1. Abrir: **`add-user-roles-system.sql`**
+2. Cambiar email del admin (línea 71): `'admin@bubilex.com'` → `'TU_EMAIL@ejemplo.com'`
+3. Ejecutar en Supabase → SQL Editor
+4. Verificar que la tabla se creó
+
+#### 📖 Guía Completa:
+
+Ver: **`docs/GUIA-INSTALACION-COLABORADORES.md`**
+
+---
+
 ## 📂 Estructura
 
 ```
