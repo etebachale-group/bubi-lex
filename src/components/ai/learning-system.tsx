@@ -862,6 +862,58 @@ const LearningSystem = () => {
 
   // Detalle de lección
   if (mode === 'lesson-detail' && currentLesson) {
+    // Contenido educativo de la Lección 1
+    const lesson1Vocab = [
+      { bubi: "botyo", spanish: "persona", example: "Botyo osossa ribúkku (La persona lee un libro)" },
+      { bubi: "batyo", spanish: "personas", example: "Batyo be tyá (Las personas van)" },
+      { bubi: "bótó", spanish: "casa", example: "Bótó lá móló (La casa tiene agua)" },
+      { bubi: "móló", spanish: "agua", example: "Móló mó telle (El agua es buena)" },
+      { bubi: "lóbà", spanish: "día", example: "Lóbà ló telle (El día es bueno)" },
+      { bubi: "èrí", spanish: "árbol", example: "Èrí é búkku (El árbol es grande)" },
+      { bubi: "rìbà", spanish: "comida", example: "Rìbà ló bótó (La comida está en la casa)" },
+      { bubi: "lobora", spanish: "palabra", example: "Lobora ló telle (La palabra es buena)" },
+      { bubi: "telle", spanish: "bien/bueno", example: "Bótó bó telle (La casa es buena)" },
+      { bubi: "sossa", spanish: "leer/contar", example: "Na osossa (Yo leo)" },
+    ];
+
+    const lesson1Grammar = [
+      { title: "7 Vocales", text: "El Bubi tiene 7 vocales: a, e, ɛ, i, o, ɔ, u (más que español)" },
+      { title: "Tonos", text: "Tono alto (´) y bajo (`) cambian el significado" },
+      { title: "Clases", text: "Cl.1 (bo-) personas singular, Cl.2 (ba-) personas plural" },
+      { title: "Concordancia", text: "Los adjetivos copian el prefijo: bótó búkku" },
+    ];
+
+    const lesson1Quiz = [
+      { q: "¿Qué significa 'botyo'?", opts: ["casa", "persona", "agua", "día"], correct: 1, exp: "'botyo' = persona (Cl.1, singular)" },
+      { q: "Plural de 'botyo':", opts: ["mabotyo", "batyo", "bibotyo", "lobotyo"], correct: 1, exp: "botyo → batyo (Cl.1 → Cl.2)" },
+      { q: "'Bótó lá móló' significa:", opts: ["Persona tiene agua", "Casa tiene agua", "Agua en casa", "Casa grande"], correct: 1, exp: "bótó=casa, lá=tiene, móló=agua" },
+      { q: "¿Cuántas vocales tiene Bubi?", opts: ["5", "6", "7", "8"], correct: 2, exp: "7 vocales: a,e,ɛ,i,o,ɔ,u" },
+      { q: "Prefijo Clase 1:", opts: ["ba-", "bo-", "mo-", "li-"], correct: 1, exp: "Cl.1 usa 'bo-' para personas singulares" },
+    ];
+
+    const [quizStarted, setQuizStarted] = useState(false);
+    const [quizIndex, setQuizIndex] = useState(0);
+    const [quizScore, setQuizScore] = useState(0);
+    const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
+    const [showQuizExp, setShowQuizExp] = useState(false);
+
+    const handleQuizAnswer = (idx: number) => {
+      if (showQuizExp) return;
+      setQuizAnswer(idx);
+      setShowQuizExp(true);
+      if (idx === lesson1Quiz[quizIndex].correct) {
+        setQuizScore(quizScore + 1);
+      }
+    };
+
+    const nextQuizQuestion = () => {
+      if (quizIndex < lesson1Quiz.length - 1) {
+        setQuizIndex(quizIndex + 1);
+        setQuizAnswer(null);
+        setShowQuizExp(false);
+      }
+    };
+
     return (
       <Card className="w-full">
         <CardHeader className="pb-3 sm:pb-6">
@@ -871,93 +923,145 @@ const LearningSystem = () => {
               <CardTitle className="text-lg sm:text-xl">{currentLesson.title}</CardTitle>
             </div>
             <Button variant="outline" size="sm" onClick={() => setMode('lessons')} className="self-start sm:self-auto">
-              Volver a lecciones
+              Volver
             </Button>
           </div>
-          <CardDescription className="text-sm">
-            {currentLesson.desc}
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6">
-          {/* Información de la lección */}
-          <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm">
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <strong>Duración:</strong> {currentLesson.time}
-              </span>
-              {currentLesson.words > 0 && (
-                <span className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
-                  <strong>Palabras:</strong> {currentLesson.words}
-                </span>
-              )}
-              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs">
-                {currentLesson.category}
-              </span>
-            </div>
-          </div>
+          {!quizStarted ? (
+            <>
+              {/* Vocabulario */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-purple-600" />
+                  Vocabulario (10 palabras)
+                </h3>
+                <div className="grid gap-2 sm:gap-3">
+                  {lesson1Vocab.map((word, idx) => (
+                    <div key={idx} className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs sm:text-sm font-bold">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-baseline gap-2">
+                            <span className="text-base sm:text-lg font-bold text-purple-900 dark:text-purple-100">{word.bubi}</span>
+                            <span className="text-sm sm:text-base text-purple-600 dark:text-purple-400">→ {word.spanish}</span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 italic">{word.example}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Contenido de la lección */}
-          {currentLesson.content && (
-            <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-              <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-purple-600" />
-                Contenido de la Lección
-              </h3>
-              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                {currentLesson.content}
-              </p>
-            </div>
+              {/* Gramática */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-blue-600" />
+                  Gramática Esencial
+                </h3>
+                <div className="grid gap-2 sm:gap-3">
+                  {lesson1Grammar.map((rule, idx) => (
+                    <div key={idx} className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h4 className="font-bold text-sm sm:text-base text-blue-900 dark:text-blue-100 mb-1">{rule.title}</h4>
+                      <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">{rule.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cultura */}
+              <div className="p-3 sm:p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-200 dark:border-orange-800">
+                <h3 className="text-base sm:text-lg font-bold mb-2 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-orange-600" />
+                  Contexto Cultural
+                </h3>
+                <p className="text-xs sm:text-sm text-orange-900 dark:text-orange-100">
+                  El Bubi es una lengua bantú de la isla de Bioko, Guinea Ecuatorial. Es una de las más antiguas de la familia nigero-congolesa. Los saludos son muy importantes en la cultura Bubi.
+                </p>
+              </div>
+
+              {/* Botón Quiz */}
+              <Button
+                onClick={() => setQuizStarted(true)}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6"
+              >
+                <Target className="w-5 h-5 mr-2" />
+                Empezar Quiz de la Lección (5 preguntas)
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Quiz */}
+              {quizIndex < lesson1Quiz.length && !showQuizExp ? (
+                <div>
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Pregunta {quizIndex + 1} de {lesson1Quiz.length}</span>
+                      <span className="font-bold text-green-600">Puntuación: {quizScore}/{quizIndex}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="bg-green-600 h-2 rounded-full transition-all" style={{ width: `${((quizIndex + 1) / lesson1Quiz.length) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="p-4 sm:p-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                    <h3 className="text-base sm:text-lg font-bold mb-4">{lesson1Quiz[quizIndex].q}</h3>
+                    <div className="space-y-2 sm:space-y-3">
+                      {lesson1Quiz[quizIndex].opts.map((opt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleQuizAnswer(idx)}
+                          className="w-full p-3 sm:p-4 text-left border-2 rounded-lg transition-all hover:border-blue-400 text-sm sm:text-base"
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : showQuizExp ? (
+                <div>
+                  <div className={`p-4 sm:p-6 rounded-lg border-2 ${quizAnswer === lesson1Quiz[quizIndex].correct ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      {quizAnswer === lesson1Quiz[quizIndex].correct ? (
+                        <CheckCircle2 className="w-6 h-6 text-green-600" />
+                      ) : (
+                        <XCircle className="w-6 h-6 text-red-600" />
+                      )}
+                      <h3 className="text-lg font-bold">
+                        {quizAnswer === lesson1Quiz[quizIndex].correct ? '¡Correcto!' : 'Incorrecto'}
+                      </h3>
+                    </div>
+                    <p className="text-sm sm:text-base">{lesson1Quiz[quizIndex].exp}</p>
+                  </div>
+                  {quizIndex < lesson1Quiz.length - 1 ? (
+                    <Button onClick={nextQuizQuestion} className="w-full mt-4 bg-blue-600 hover:bg-blue-700">
+                      Siguiente Pregunta <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <div className="mt-4 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg border-2 border-yellow-200 dark:border-yellow-800 text-center">
+                      <Trophy className="w-16 h-16 mx-auto mb-3 text-yellow-600" />
+                      <h3 className="text-xl font-bold mb-2">¡Quiz Completado!</h3>
+                      <div className="text-4xl font-bold text-yellow-600 mb-2">{quizScore}/{lesson1Quiz.length}</div>
+                      <p className="text-muted-foreground mb-4">
+                        {quizScore === lesson1Quiz.length ? '¡Perfecto! Dominas esta lección' : quizScore >= 3 ? '¡Muy bien! Buen progreso' : 'Sigue practicando'}
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button variant="outline" onClick={() => { setQuizStarted(false); setQuizIndex(0); setQuizScore(0); setQuizAnswer(null); setShowQuizExp(false); }}>
+                          Repasar Lección
+                        </Button>
+                        <Button onClick={() => { alert('¡Lección completada!'); setMode('lessons'); }} className="bg-green-600 hover:bg-green-700">
+                          Completar Lección
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </>
           )}
-
-          {/* Mensaje de próximamente */}
-          <div className="p-4 sm:p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg border-2 border-yellow-200 dark:border-yellow-800 text-center">
-            <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 text-yellow-600 dark:text-yellow-400" />
-            <h3 className="text-lg sm:text-xl font-bold mb-2">Contenido Interactivo Próximamente</h3>
-            <p className="text-sm sm:text-base text-muted-foreground mb-4">
-              Estamos preparando ejercicios interactivos, audio de pronunciación, y actividades prácticas para esta lección.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
-              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
-                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-blue-600" />
-                <div className="font-semibold">Audio</div>
-              </div>
-              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
-                <Target className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-green-600" />
-                <div className="font-semibold">Ejercicios</div>
-              </div>
-              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
-                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-purple-600" />
-                <div className="font-semibold">Quiz</div>
-              </div>
-              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-yellow-600" />
-                <div className="font-semibold">Logros</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setMode('lessons')}
-              className="w-full"
-            >
-              Volver a la lista
-            </Button>
-            <Button
-              onClick={() => {
-                alert('¡Lección marcada como completada! El contenido interactivo estará disponible pronto.');
-                setMode('lessons');
-              }}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Marcar como Completada
-            </Button>
-          </div>
         </CardContent>
       </Card>
     );
