@@ -112,6 +112,8 @@ Registros en tabla: 0
 
 ⚠️ **IMPORTANTE:** Si no ves este mensaje, NO continúes. Consulta la sección de [Solución de Problemas](#solución-de-problemas).
 
+**NOTA:** Los archivos de importación han sido corregidos para tener espacios correctos después de las abreviaturas (adj., s., pl., Cl., etc.) y todas las abreviaturas están estandarizadas (Cl. en lugar de CI. o el., pl. en lugar de pI. o PI.).
+
 ---
 
 ### Paso 2: Importar Parte 1
