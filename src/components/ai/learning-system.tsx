@@ -19,7 +19,8 @@ import {
   Lock,
   Star,
   Flame,
-  GraduationCap
+  GraduationCap,
+  Clock
 } from "lucide-react";
 import { speak } from "@/lib/speech-synthesis";
 
