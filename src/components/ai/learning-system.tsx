@@ -636,18 +636,126 @@ const LearningSystem = () => {
   // Lista de lecciones estructuradas
   if (mode === 'lessons') {
     const lessons = [
-      { id: 1, title: "Introducción y Saludos", desc: "Saludos básicos y presentaciones", status: "available", time: "15 min", words: 10, category: "Saludos" },
-      { id: 2, title: "Números del 1 al 10", desc: "Sistema numérico básico", status: "locked", time: "20 min", words: 10, category: "Números" },
-      { id: 3, title: "La Familia", desc: "Miembros de la familia", status: "locked", time: "25 min", words: 15, category: "Familia" },
-      { id: 4, title: "Colores y Formas", desc: "Vocabulario visual básico", status: "locked", time: "20 min", words: 12, category: "Colores" },
-      { id: 5, title: "Comida y Bebida", desc: "Alimentos comunes", status: "locked", time: "30 min", words: 20, category: "Comida" },
-      { id: 6, title: "El Cuerpo Humano", desc: "Partes del cuerpo", status: "locked", time: "25 min", words: 18, category: "Cuerpo" },
-      { id: 7, title: "La Casa", desc: "Objetos y habitaciones", status: "locked", time: "30 min", words: 20, category: "Casa" },
-      { id: 8, title: "Verbos Básicos", desc: "Acciones cotidianas", status: "locked", time: "35 min", words: 15, category: "Verbos" },
-      { id: 9, title: "Clases Nominales", desc: "Sistema de prefijos", status: "locked", time: "40 min", words: 0, category: "Gramática" },
-      { id: 10, title: "Construcción de Oraciones", desc: "Orden S-V-O", status: "locked", time: "40 min", words: 0, category: "Gramática" },
-      { id: 11, title: "Conversación Básica", desc: "Diálogos simples", status: "locked", time: "45 min", words: 25, category: "Conversación" },
-      { id: 12, title: "Cultura Bubi", desc: "Tradiciones y costumbres", status: "locked", time: "30 min", words: 15, category: "Cultura" },
+      { 
+        id: 1, 
+        title: "Lección 1: Saludos y Presentaciones", 
+        desc: "Aprende palabras básicas: botyo (persona), bótó (casa), móló (agua)", 
+        status: "available", 
+        time: "15 min", 
+        words: 10, 
+        category: "Saludos",
+        content: "Palabras: botyo, batyo, bótó, móló, lóbà, èrí, rìbà, lobora, telle, sossa"
+      },
+      { 
+        id: 2, 
+        title: "Lección 2: Números 1-10", 
+        desc: "Sistema numérico: mottí (1), babá (2), balalo (3)...", 
+        status: "locked", 
+        time: "20 min", 
+        words: 10, 
+        category: "Números",
+        content: "Números: mottí, babá, balalo, bíná, bítáno, motóba, sambuali, mwambe, libua, jómi"
+      },
+      { 
+        id: 3, 
+        title: "Lección 3: La Familia", 
+        desc: "Familia: pateri (padre), materi (madre), mwana (hijo)", 
+        status: "locked", 
+        time: "25 min", 
+        words: 15, 
+        category: "Familia",
+        content: "Clases nominales Cl.1 (bo-) y Cl.2 (ba-) para personas"
+      },
+      { 
+        id: 4, 
+        title: "Lección 4: Colores y Formas", 
+        desc: "Colores: pépé (rojo), pípi (negro), tótó (blanco)", 
+        status: "locked", 
+        time: "20 min", 
+        words: 12, 
+        category: "Colores",
+        content: "Adjetivos con concordancia de clase nominal"
+      },
+      { 
+        id: 5, 
+        title: "Lección 5: Comida y Bebida", 
+        desc: "Alimentos: biheli (ñames), mbika (pescado), nyama (carne)", 
+        status: "locked", 
+        time: "30 min", 
+        words: 20, 
+        category: "Comida",
+        content: "Vocabulario de alimentos tradicionales Bubi"
+      },
+      { 
+        id: 6, 
+        title: "Lección 6: El Cuerpo Humano", 
+        desc: "Cuerpo: motó (cabeza), liso (ojo), loboko (brazo)", 
+        status: "locked", 
+        time: "25 min", 
+        words: 18, 
+        category: "Cuerpo",
+        content: "Clases Cl.5 (li-) y Cl.6 (ma-) para partes del cuerpo"
+      },
+      { 
+        id: 7, 
+        title: "Lección 7: La Casa", 
+        desc: "Casa: bótó (casa), tébollo (mesa), bOntána (ventana)", 
+        status: "locked", 
+        time: "30 min", 
+        words: 20, 
+        category: "Casa",
+        content: "Vocabulario doméstico con préstamos del español"
+      },
+      { 
+        id: 8, 
+        title: "Lección 8: Verbos Básicos", 
+        desc: "Verbos: sossa (leer), tyá (ir), ría (comer), nua (beber)", 
+        status: "locked", 
+        time: "35 min", 
+        words: 15, 
+        category: "Verbos",
+        content: "Conjugación con prefijo o- en presente"
+      },
+      { 
+        id: 9, 
+        title: "Lección 9: Clases Nominales", 
+        desc: "Sistema de 14 clases con prefijos: bo-, ba-, mo-, mi-, li-, ma-...", 
+        status: "locked", 
+        time: "40 min", 
+        words: 0, 
+        category: "Gramática",
+        content: "Fundamento del sistema gramatical Bubi"
+      },
+      { 
+        id: 10, 
+        title: "Lección 10: Construcción de Oraciones", 
+        desc: "Orden S-V-O: Botyo osossa ribúkku (La persona lee un libro)", 
+        status: "locked", 
+        time: "40 min", 
+        words: 0, 
+        category: "Gramática",
+        content: "Sintaxis y concordancia obligatoria"
+      },
+      { 
+        id: 11, 
+        title: "Lección 11: Conversación Básica", 
+        desc: "Frases: Bótó lá móló (La casa tiene agua)", 
+        status: "locked", 
+        time: "45 min", 
+        words: 25, 
+        category: "Conversación",
+        content: "Diálogos en situaciones cotidianas"
+      },
+      { 
+        id: 12, 
+        title: "Lección 12: Cultura Bubi", 
+        desc: "Historia, tradiciones y cosmovisión del pueblo Bubi de Bioko", 
+        status: "locked", 
+        time: "30 min", 
+        words: 15, 
+        category: "Cultura",
+        content: "Contexto cultural e histórico de la lengua"
+      },
     ];
 
     return (
@@ -691,6 +799,11 @@ const LearningSystem = () => {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-sm sm:text-lg leading-tight">{lesson.title}</h3>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">{lesson.desc}</p>
+                        {lesson.content && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 italic">
+                            📖 {lesson.content}
+                          </p>
+                        )}
                         <div className="flex flex-wrap gap-2 sm:gap-4 mt-1.5 sm:mt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
