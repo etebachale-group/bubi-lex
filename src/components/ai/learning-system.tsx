@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Brain, 
   BookOpen, 
@@ -60,7 +59,6 @@ const WORDS_PER_LEVEL = 20;
 
 const LearningSystem = () => {
   const [mode, setMode] = useState<LearningMode>('menu');
-  const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [quizData, setQuizData] = useState<QuizQuestion[]>([]);
@@ -139,12 +137,11 @@ const LearningSystem = () => {
         }));
 
       // Generar sesión con IA usando las palabras seleccionadas
-      const topicText = topic.trim() || 'vocabulario básico';
       const res = await fetch('/api/ai/learning-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          topic: topicText, 
+          topic: 'vocabulario básico', 
           wordCount: selectedWords.length,
           words: selectedWords 
         }),
@@ -178,7 +175,7 @@ const LearningSystem = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [topic, getUnlearnedWords]);
+  }, [getUnlearnedWords]);
 
   // Marcar sesión como completada
   const completeSession = useCallback(() => {
@@ -238,7 +235,7 @@ const LearningSystem = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          topic: topic.trim() || 'palabras aprendidas',
+          topic: 'palabras aprendidas',
           count: 5,
           words: selectedWords
         }),
@@ -276,7 +273,7 @@ const LearningSystem = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [topic, progress.learnedWords]);
+  }, [progress.learnedWords]);
 
   // Completar quiz
   const completeQuiz = useCallback(() => {
@@ -331,7 +328,6 @@ const LearningSystem = () => {
   // Volver al menú
   const resetToMenu = () => {
     setMode('menu');
-    setTopic('');
     setSessionData(null);
     setQuizData([]);
     setCurrentQuestionIndex(0);
@@ -515,28 +511,17 @@ const LearningSystem = () => {
             </Button>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-semibold">¿Qué quieres aprender hoy?</label>
-            <Input
-              placeholder="Ej: saludos, familia, números, comida..."
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && generateLearningSession()}
-              className="text-lg"
-            />
-          </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             <Button
               onClick={generateLearningSession}
-              disabled={!topic.trim() || isLoading}
+              disabled={isLoading}
               className="h-auto py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
             >
               <div className="flex flex-col items-center gap-2">
                 <BookOpen className="w-8 h-8" />
                 <div>
                   <div className="font-bold">Sesión de Aprendizaje</div>
-                  <div className="text-xs opacity-90">Palabras nuevas y ejemplos</div>
+                  <div className="text-xs opacity-90">Aprende 5 palabras nuevas</div>
                 </div>
               </div>
             </Button>
@@ -599,7 +584,7 @@ const LearningSystem = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              <CardTitle>Sesión: {topic}</CardTitle>
+              <CardTitle>Sesión de Aprendizaje</CardTitle>
             </div>
             <Button variant="outline" size="sm" onClick={resetToMenu}>
               Volver al menú
@@ -735,7 +720,7 @@ const LearningSystem = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <CardTitle>Quiz: {topic}</CardTitle>
+              <CardTitle>Quiz Interactivo</CardTitle>
             </div>
             <Button variant="outline" size="sm" onClick={resetToMenu}>
               Salir
