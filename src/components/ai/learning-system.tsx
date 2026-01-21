@@ -33,6 +33,17 @@ type Word = {
   id?: number;
 };
 
+type LessonData = {
+  id: number;
+  title: string;
+  desc: string;
+  status: string;
+  time: string;
+  words: number;
+  category: string;
+  content?: string;
+};
+
 type Example = {
   bubi: string;
   spanish: string;
@@ -72,6 +83,7 @@ const LearningSystem = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
+  const [currentLesson, setCurrentLesson] = useState<LessonData | null>(null);
   const [progress, setProgress] = useState<UserProgress>({
     learnedWords: [],
     completedTopics: [],
@@ -375,6 +387,13 @@ const LearningSystem = () => {
     setShowExplanation(false);
     setScore(0);
     setAnsweredQuestions(0);
+    setCurrentLesson(null);
+  };
+
+  // Abrir una lección
+  const openLesson = (lesson: LessonData) => {
+    setCurrentLesson(lesson);
+    setMode('lesson-detail');
   };
 
   // Pronunciar palabra
@@ -821,7 +840,11 @@ const LearningSystem = () => {
                         </div>
                       </div>
                       {!isLocked && (
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm self-start sm:self-auto whitespace-nowrap">
+                        <Button 
+                          size="sm" 
+                          className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm self-start sm:self-auto whitespace-nowrap"
+                          onClick={() => openLesson(lesson)}
+                        >
                           <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           Empezar
                         </Button>
@@ -832,6 +855,109 @@ const LearningSystem = () => {
               </div>
             );
           })}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Detalle de lección
+  if (mode === 'lesson-detail' && currentLesson) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+              <CardTitle className="text-lg sm:text-xl">{currentLesson.title}</CardTitle>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setMode('lessons')} className="self-start sm:self-auto">
+              Volver a lecciones
+            </Button>
+          </div>
+          <CardDescription className="text-sm">
+            {currentLesson.desc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 sm:space-y-6">
+          {/* Información de la lección */}
+          <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm">
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <strong>Duración:</strong> {currentLesson.time}
+              </span>
+              {currentLesson.words > 0 && (
+                <span className="flex items-center gap-1">
+                  <BookOpen className="w-4 h-4 text-blue-600" />
+                  <strong>Palabras:</strong> {currentLesson.words}
+                </span>
+              )}
+              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs">
+                {currentLesson.category}
+              </span>
+            </div>
+          </div>
+
+          {/* Contenido de la lección */}
+          {currentLesson.content && (
+            <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+              <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-purple-600" />
+                Contenido de la Lección
+              </h3>
+              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                {currentLesson.content}
+              </p>
+            </div>
+          )}
+
+          {/* Mensaje de próximamente */}
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg border-2 border-yellow-200 dark:border-yellow-800 text-center">
+            <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 text-yellow-600 dark:text-yellow-400" />
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Contenido Interactivo Próximamente</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              Estamos preparando ejercicios interactivos, audio de pronunciación, y actividades prácticas para esta lección.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-blue-600" />
+                <div className="font-semibold">Audio</div>
+              </div>
+              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-green-600" />
+                <div className="font-semibold">Ejercicios</div>
+              </div>
+              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-purple-600" />
+                <div className="font-semibold">Quiz</div>
+              </div>
+              <div className="p-2 sm:p-3 bg-white dark:bg-gray-900 rounded-lg">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-yellow-600" />
+                <div className="font-semibold">Logros</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Botones de acción */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setMode('lessons')}
+              className="w-full"
+            >
+              Volver a la lista
+            </Button>
+            <Button
+              onClick={() => {
+                alert('¡Lección marcada como completada! El contenido interactivo estará disponible pronto.');
+                setMode('lessons');
+              }}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Marcar como Completada
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
