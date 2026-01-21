@@ -16,10 +16,21 @@ async function searchInDictionary(text: string) {
   const supabase = getSupabase();
   const searchTerm = text.toLowerCase().trim();
   
-  // Buscar en español (para traducir a Bubi)
+  // Buscar coincidencia exacta primero
+  const { data: exactMatch, error: exactError } = await supabase
+    .from('dictionary_entries')
+    .select('bubi, spanish, word_type, gender, number, nominal_class, plural_form, examples, variants, notes, ipa')
+    .ilike('spanish', searchTerm)
+    .limit(1);
+  
+  if (!exactError && exactMatch && exactMatch.length > 0) {
+    return exactMatch;
+  }
+  
+  // Si no hay coincidencia exacta, buscar palabras similares
   const { data, error } = await supabase
     .from('dictionary_entries')
-    .select('bubi, spanish, word_type, gender, number, nominal_class, plural_form, examples, variants, notes')
+    .select('bubi, spanish, word_type, gender, number, nominal_class, plural_form, examples, variants, notes, ipa')
     .or(`spanish.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`)
     .limit(10);
   
@@ -29,6 +40,71 @@ async function searchInDictionary(text: string) {
   }
   
   return data && data.length > 0 ? data : null;
+}
+
+// Función para traducir oraciones palabra por palabra usando el diccionario
+async function translateSentenceFromDictionary(sentence: string) {
+  const supabase = getSupabase();
+  
+  // Dividir la oración en palabras (eliminar puntuación)
+  const words = sentence
+    .toLowerCase()
+    .replace(/[.,;:!?¿¡]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 0);
+  
+  if (words.length === 0) return null;
+  
+  const translations: Array<{
+    spanish: string;
+    bubi: string | null;
+    found: boolean;
+    entry?: any;
+  }> = [];
+  
+  let foundCount = 0;
+  
+  // Buscar cada palabra en el diccionario
+  for (const word of words) {
+    const { data, error } = await supabase
+      .from('dictionary_entries')
+      .select('bubi, spanish, word_type, nominal_class, ipa')
+      .ilike('spanish', word)
+      .limit(1);
+    
+    if (!error && data && data.length > 0) {
+      translations.push({
+        spanish: word,
+        bubi: data[0].bubi,
+        found: true,
+        entry: data[0]
+      });
+      foundCount++;
+    } else {
+      translations.push({
+        spanish: word,
+        bubi: null,
+        found: false
+      });
+    }
+  }
+  
+  // Si encontramos al menos el 50% de las palabras, construir traducción
+  if (foundCount >= words.length * 0.5) {
+    const bubiWords = translations.map(t => t.bubi || `[${t.spanish}?]`).join(' ');
+    const missingWords = translations.filter(t => !t.found).map(t => t.spanish);
+    
+    return {
+      translation: bubiWords,
+      foundWords: foundCount,
+      totalWords: words.length,
+      missingWords,
+      wordDetails: translations.filter(t => t.found).map(t => t.entry),
+      isPartial: missingWords.length > 0
+    };
+  }
+  
+  return null;
 }
 
 // Función para construir traducción desde el diccionario
@@ -112,14 +188,54 @@ export async function POST(req: Request) {
     }
 
     const { text, context } = parsed.data;
+    const trimmedText = text.trim();
     
-    // PASO 1: Buscar primero en el diccionario real
-    logger.info('Buscando traducción en diccionario', { text });
-    const dictionaryResults = await searchInDictionary(text);
+    // Detectar si es una palabra o una oración
+    const isMultipleWords = trimmedText.includes(' ');
+    
+    if (isMultipleWords) {
+      // CASO 1: ORACIÓN - Traducir palabra por palabra desde el diccionario
+      logger.info('Traduciendo oración palabra por palabra', { text: trimmedText });
+      const sentenceTranslation = await translateSentenceFromDictionary(trimmedText);
+      
+      if (sentenceTranslation) {
+        const { translation, foundWords, totalWords, missingWords, wordDetails, isPartial } = sentenceTranslation;
+        
+        return NextResponse.json({
+          translation,
+          explanation: isPartial 
+            ? `Traducción parcial: ${foundWords}/${totalWords} palabras encontradas en el diccionario. Palabras no encontradas: ${missingWords.join(', ')}`
+            : `Traducción completa: ${foundWords}/${totalWords} palabras del diccionario`,
+          alternatives: [],
+          source: 'dictionary',
+          provider: 'dictionary-sentence',
+          entries: wordDetails,
+          detectedLanguage: 'spanish',
+          note: isPartial 
+            ? `⚠️ ADVERTENCIA: Las palabras marcadas con [?] NO están en el diccionario y necesitan ser agregadas. La IA NO debe inventar traducciones.`
+            : undefined
+        });
+      }
+      
+      // Si no se pudo traducir suficientes palabras, devolver error
+      return NextResponse.json({
+        translation: '',
+        explanation: `No se pudo traducir la oración. Muy pocas palabras encontradas en el diccionario (${trimmedText.split(' ').length} palabras en total).`,
+        alternatives: [],
+        source: 'error',
+        provider: 'none',
+        detectedLanguage: 'spanish',
+        note: '⚠️ IMPORTANTE: Esta oración contiene palabras que NO están en el diccionario. Por favor, agrega las palabras faltantes al diccionario primero. NO se usará IA para inventar traducciones.'
+      });
+    }
+    
+    // CASO 2: PALABRA INDIVIDUAL - Buscar SOLO en el diccionario
+    logger.info('Buscando palabra individual en diccionario', { text: trimmedText });
+    const dictionaryResults = await searchInDictionary(trimmedText);
     
     if (dictionaryResults && dictionaryResults.length > 0) {
-      logger.info('Traducción encontrada en diccionario', { count: dictionaryResults.length });
-      const translation = buildTranslationFromDictionary(dictionaryResults, text);
+      logger.info('Palabra encontrada en diccionario', { count: dictionaryResults.length });
+      const translation = buildTranslationFromDictionary(dictionaryResults, trimmedText);
       
       return NextResponse.json({
         ...translation,
@@ -128,35 +244,17 @@ export async function POST(req: Request) {
       });
     }
     
-    // PASO 2: Si no está en el diccionario, intentar con IA
-    logger.info('No encontrado en diccionario, usando IA', { text });
+    // CASO 3: Palabra NO encontrada - NO usar IA, devolver error claro
+    logger.info('Palabra NO encontrada en diccionario', { text: trimmedText });
     
-    let result;
-    let provider = 'ai-fallback';
-    let detectedLang: string | undefined;
-
-    // Intentar primero con IA de pago si está disponible
-    if (isAIAvailable()) {
-      try {
-        detectedLang = await detectLanguage(text);
-        result = await contextualTranslation(text, context);
-        provider = 'openai/anthropic';
-      } catch (error) {
-        logger.warn('Error con IA de pago, usando alternativas gratuitas', { error: error instanceof Error ? error.message : String(error) });
-        result = await translateWithFreeAI(text, context);
-        detectedLang = 'unknown';
-      }
-    } else {
-      // Usar alternativas gratuitas directamente
-      result = await translateWithFreeAI(text, context);
-      detectedLang = 'unknown';
-    }
-
     return NextResponse.json({
-      ...result,
-      detectedLanguage: detectedLang,
-      provider,
-      note: 'Traducción generada por IA (no encontrada en diccionario). Puede no ser 100% precisa.'
+      translation: '',
+      explanation: `La palabra "${trimmedText}" NO está en el diccionario de 7,676 palabras.`,
+      alternatives: [],
+      source: 'not-found',
+      provider: 'none',
+      detectedLanguage: 'spanish',
+      note: `⚠️ PALABRA NO ENCONTRADA: "${trimmedText}" no existe en el diccionario. Por favor, agrégala desde el panel de administración. NO se usará IA para inventar la traducción.`
     });
   } catch (error) {
     logger.error('Error en POST /api/ai/translate', error);

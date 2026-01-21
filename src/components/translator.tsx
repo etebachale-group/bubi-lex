@@ -194,6 +194,25 @@ export default function Translator() {
                   </p>
                 )}
                 
+                {result.provider === 'not-found' && (
+                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-900 dark:text-red-100 font-semibold">
+                      ❌ Palabra no encontrada en el diccionario
+                    </p>
+                    <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                      Esta palabra necesita ser agregada al diccionario. No se usará IA para inventar traducciones.
+                    </p>
+                  </div>
+                )}
+                
+                {result.provider === 'dictionary-sentence' && result.note && (
+                  <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <p className="text-xs text-amber-900 dark:text-amber-100">
+                      {result.note}
+                    </p>
+                  </div>
+                )}
+                
                 {result.alternatives && result.alternatives.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700">
                     <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">
@@ -307,9 +326,14 @@ export default function Translator() {
         {/* Nota informativa */}
         <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
           <p className="text-xs text-blue-900 dark:text-blue-100">
-            <strong>💡 Cómo funciona:</strong> Primero busca en el diccionario de 7,676 palabras. 
-            Si no encuentra coincidencia exacta, usa IA para generar una traducción aproximada.
+            <strong>💡 Cómo funciona:</strong>
           </p>
+          <ul className="text-xs text-blue-800 dark:text-blue-200 mt-1 space-y-1 ml-4">
+            <li>• <strong>Palabras individuales:</strong> Busca SOLO en el diccionario (7,676 palabras)</li>
+            <li>• <strong>Oraciones:</strong> Traduce palabra por palabra desde el diccionario</li>
+            <li>• <strong>Palabras no encontradas:</strong> Se marcan con [?] - NO se inventa la traducción</li>
+            <li>• <strong>Sin IA inventando:</strong> Solo usa datos reales del diccionario</li>
+          </ul>
         </div>
         
         {result?.note && (
