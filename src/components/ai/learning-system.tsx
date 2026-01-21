@@ -997,10 +997,10 @@ const LearningSystem = () => {
               {/* Botón Quiz */}
               <Button
                 onClick={() => setQuizStarted(true)}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-4 sm:py-6 text-sm sm:text-base"
               >
-                <Target className="w-5 h-5 mr-2" />
-                Empezar Quiz de la Lección (5 preguntas)
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                Empezar Quiz (5 preguntas)
               </Button>
             </>
           ) : (
