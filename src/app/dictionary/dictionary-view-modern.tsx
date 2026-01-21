@@ -204,26 +204,27 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
   };
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in">
+    <div className="flex flex-col gap-10 animate-fade-in">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
-            <BookOpen className="w-8 h-8 text-white" />
+      <div className="text-center space-y-6 py-8">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-500 shadow-2xl shadow-blue-500/30 dark:shadow-blue-500/20 animate-pulse-slow">
+            <BookOpen className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-headline font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
-            Diccionario Bubi-Español
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-600 dark:from-blue-400 dark:via-cyan-400 dark:to-teal-400 bg-clip-text text-transparent leading-tight">
+            Diccionario Bubi
           </h1>
+          <div className="h-1 w-32 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 rounded-full"></div>
         </div>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Explora más de {dictionary.length} palabras del idioma Bubi con traducciones, pronunciación y notas culturales
+        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-light leading-relaxed">
+          Explora <span className="font-bold text-blue-600 dark:text-blue-400">{dictionary.length.toLocaleString()}</span> palabras del idioma Bubi con traducciones, pronunciación y notas culturales
         </p>
       </div>
 
       {/* Search Bar with Language Toggle */}
-      <div className="max-w-2xl mx-auto w-full space-y-4">
+      <div className="max-w-3xl mx-auto w-full space-y-6">
         {/* Language Direction Selector */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-4">
           <Button
             variant={searchLang === 'bubi' ? 'default' : 'outline'}
             onClick={() => {
@@ -232,7 +233,11 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
               params.set('lang', 'bubi');
               router.push(`/dictionary?${params.toString()}`);
             }}
-            className="flex-1 max-w-[200px] glass-card"
+            className={`flex-1 max-w-[220px] h-12 text-base font-semibold transition-all duration-300 ${
+              searchLang === 'bubi' 
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg shadow-blue-500/30' 
+                : 'hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-400'
+            }`}
           >
             Bubi → Español
           </Button>
@@ -241,10 +246,10 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
             variant="ghost"
             size="icon"
             onClick={toggleSearchLang}
-            className="rounded-full hover:rotate-180 transition-transform duration-300"
+            className="rounded-full h-12 w-12 hover:rotate-180 transition-all duration-500 hover:bg-gradient-to-br hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-900 dark:hover:to-cyan-900"
             title="Cambiar dirección de búsqueda"
           >
-            <ArrowRightLeft className="w-5 h-5" />
+            <ArrowRightLeft className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </Button>
           
           <Button
@@ -255,26 +260,32 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
               params.set('lang', 'es');
               router.push(`/dictionary?${params.toString()}`);
             }}
-            className="flex-1 max-w-[200px] glass-card"
+            className={`flex-1 max-w-[220px] h-12 text-base font-semibold transition-all duration-300 ${
+              searchLang === 'es' 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/30' 
+                : 'hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:border-purple-400'
+            }`}
           >
             Español → Bubi
           </Button>
         </div>
 
         {/* Search Input */}
-        <div className="relative">
+        <div className="relative group">
           <Input
             placeholder={searchLang === 'bubi' ? 'Busca una palabra en Bubi...' : 'Busca una palabra en Español...'}
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-12 pr-4 py-6 text-lg glass-card border-2 focus:border-blue-400 dark:focus:border-blue-600 transition-all"
+            className="pl-14 pr-24 py-7 text-lg font-medium glass-card border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg hover:shadow-xl"
           />
-          <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
+            <BookOpen className="w-5 h-5 text-white" />
+          </div>
           {searchTerm && (
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-2 top-1/2 -translate-y-1/2"
+              className="absolute right-3 top-1/2 -translate-y-1/2 font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900"
               onClick={() => handleSearch('')}
             >
               Limpiar
@@ -282,55 +293,61 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
           )}
         </div>
         
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <p>
-            Buscando en: <span className="font-semibold text-blue-600 dark:text-blue-400">
-              {searchLang === 'bubi' ? 'Bubi' : 'Español'}
-            </span>
-          </p>
-          <p>
-            {sortedDictionary.length} {sortedDictionary.length === 1 ? 'resultado' : 'resultados'}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${searchLang === 'bubi' ? 'bg-blue-500' : 'bg-purple-500'} animate-pulse`}></div>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Buscando en: <span className={`font-bold ${searchLang === 'bubi' ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}>
+                {searchLang === 'bubi' ? 'Bubi' : 'Español'}
+              </span>
+            </p>
+          </div>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-4 py-1.5 rounded-full">
+            {sortedDictionary.length.toLocaleString()} {sortedDictionary.length === 1 ? 'resultado' : 'resultados'}
           </p>
         </div>
       </div>
 
       {/* Dictionary Grid */}
       {sortedDictionary.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sortedDictionary.map((entry, index) => (
             <Card 
               key={entry.id}
-              className="glass-card border-2 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:scale-105 hover:shadow-xl group"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="glass-card border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20 group overflow-hidden"
+              style={{ animationDelay: `${index * 30}ms` }}
             >
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 pb-5 relative">
+                {/* Decorative gradient background */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
+                
                 {/* Bubi Word */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-headline font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                <div className="mb-5">
+                  <div className="flex items-start justify-between mb-2 gap-2">
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-600 dark:from-blue-400 dark:via-cyan-400 dark:to-teal-400 bg-clip-text text-transparent leading-tight flex-1 break-words">
                       {entry.bubi}
                     </h3>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:scale-110"
                         onClick={() => handlePronounce(entry.bubi)}
                         title="Pronunciar"
                       >
-                        <Volume2 className="w-4 h-4" />
+                        <Volume2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900 hover:scale-110"
                         onClick={() => handleCopy(entry.bubi, entry.id)}
                         title="Copiar"
                       >
                         {copiedId === entry.id ? (
-                          <Check className="w-4 h-4 text-green-500" />
+                          <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                         ) : (
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-4 h-4 text-green-600 dark:text-green-400" />
                         )}
                       </Button>
                     </div>
@@ -339,19 +356,19 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                 </div>
 
                 {/* Spanish Translation */}
-                <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border border-purple-200 dark:border-purple-800">
-                  <p className="text-sm text-muted-foreground mb-1">Español</p>
-                  <p className="text-lg font-semibold text-purple-900 dark:text-purple-100">
+                <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-rose-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-sm">
+                  <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-wider">Español</p>
+                  <p className="text-base md:text-lg font-semibold text-purple-900 dark:text-purple-100 leading-relaxed">
                     {entry.spanish}
                   </p>
                 </div>
 
                 {/* Notes */}
                 {entry.notes && (
-                  <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-200 dark:border-amber-800 shadow-sm mb-4">
                     <div className="flex items-start gap-2">
-                      <Sparkles className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-orange-900 dark:text-orange-100">
+                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
+                      <p className="text-sm text-amber-900 dark:text-amber-100 leading-relaxed">
                         {entry.notes}
                       </p>
                     </div>
@@ -359,13 +376,13 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                 )}
 
                 {/* AI Features Link */}
-                <div className="mt-4 pt-4 border-t">
+                <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800">
                   <a 
                     href={`/ai-features?word=${encodeURIComponent(entry.bubi)}`}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-2 group/link transition-all"
                   >
-                    <Sparkles className="w-3 h-3" />
-                    Ver ejemplos con IA
+                    <Sparkles className="w-4 h-4 group-hover/link:rotate-12 transition-transform" />
+                    <span className="group-hover/link:underline">Ver ejemplos con IA</span>
                   </a>
                 </div>
               </CardContent>
@@ -373,18 +390,18 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center py-20 animate-fade-in">
-          <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 mb-6">
-            <SearchX className="w-16 h-16 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center text-center py-24 animate-fade-in">
+          <div className="p-8 rounded-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 mb-8 shadow-xl">
+            <SearchX className="w-20 h-20 text-gray-400 dark:text-gray-600" />
           </div>
-          <h2 className="text-2xl font-semibold mb-2">No se encontraron resultados</h2>
-          <p className="text-muted-foreground max-w-md">
-            No hemos encontrado ninguna palabra que coincida con "{searchTerm}". 
+          <h2 className="text-3xl font-bold mb-3 text-gray-800 dark:text-gray-200">No se encontraron resultados</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
+            No hemos encontrado ninguna palabra que coincida con <span className="font-bold text-blue-600 dark:text-blue-400">"{searchTerm}"</span>. 
             Intenta con otra búsqueda.
           </p>
           <Button
             variant="outline"
-            className="mt-6"
+            className="px-8 py-6 text-base font-semibold border-2 hover:bg-blue-50 dark:hover:bg-blue-950 hover:border-blue-400 transition-all"
             onClick={() => setSearchTerm('')}
           >
             Limpiar búsqueda
