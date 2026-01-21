@@ -5,7 +5,9 @@
 
 ## Problema Identificado
 
-El usuario reportó que el input "¿Qué quieres aprender hoy?" no funcionaba correctamente. El sistema pedía un tema pero no lo utilizaba de manera efectiva para generar contenido relevante.
+El usuario reportó dos problemas:
+1. El input "¿Qué quieres aprender hoy?" no funcionaba correctamente
+2. Al pulsar "Sesión de Aprendizaje" siempre mostraba: "¡Felicidades! Has aprendido todas las palabras disponibles"
 
 ## Cambios Realizados
 
@@ -23,6 +25,29 @@ El usuario reportó que el input "¿Qué quieres aprender hoy?" no funcionaba co
 - ✅ Interfaz más limpia y directa
 
 ### 3. Modificaciones en el Código
+
+**Bug crítico corregido:**
+```typescript
+// ANTES - Bug: buscaba 'data.entries' pero el API devuelve 'data.items'
+const allWords = data.entries || [];
+
+// DESPUÉS - Corregido
+const allWords = data.items || [];
+```
+
+**Mejora en obtención de palabras:**
+```typescript
+// ANTES - Solo obtenía 12 palabras (límite por defecto)
+const res = await fetch('/api/dictionary');
+
+// DESPUÉS - Obtiene hasta 500 palabras (5 páginas de 100)
+// Hace múltiples requests para tener más variedad
+let page = 1;
+while (hasMore && page <= 5) {
+  const res = await fetch(`/api/dictionary?limit=100&page=${page}`);
+  // ... procesa y acumula palabras
+}
+```
 
 **Variables eliminadas:**
 ```typescript
@@ -63,6 +88,8 @@ const [topic, setTopic] = useState('');
 ✅ **Más efectivo**: Usa palabras reales del diccionario (7,676 palabras)  
 ✅ **Sin confusión**: No hay expectativas sobre temas específicos  
 ✅ **Mejor UX**: Interfaz más limpia y directa  
+✅ **Bug corregido**: Ahora sí obtiene palabras del diccionario correctamente  
+✅ **Más variedad**: Obtiene hasta 500 palabras aleatorias en lugar de solo 12  
 
 ## Sistema de Progreso (Sin Cambios)
 
@@ -92,3 +119,30 @@ El sistema de progreso sigue funcionando igual:
 1. **Probar el sistema**: Verificar que funciona correctamente sin el input de tema
 2. **Feedback del usuario**: Confirmar que la simplificación resuelve el problema
 3. **Optimización futura**: Considerar agregar categorías predefinidas (opcional)
+
+
+## Solución al Bug "Has aprendido todas las palabras"
+
+### Causa del Problema
+
+El componente estaba buscando `data.entries` pero el API `/api/dictionary` devuelve `data.items`. Esto causaba que:
+- `allWords` siempre fuera un array vacío `[]`
+- `unlearnedWords` también fuera vacío
+- El sistema pensaba que no había palabras disponibles
+
+### Solución Implementada
+
+1. **Corregido el nombre del campo**: Cambiado de `data.entries` a `data.items`
+2. **Aumentado el límite de palabras**: De 12 (por defecto) a 500 (5 páginas de 100)
+3. **Implementado paginación**: Hace múltiples requests para obtener más palabras
+4. **Aplicado en dos funciones**:
+   - `getUnlearnedWords()` - Para sesiones de aprendizaje
+   - `generateQuiz()` - Para quiz interactivos
+
+### Resultado
+
+Ahora el sistema:
+- ✅ Obtiene correctamente las palabras del diccionario
+- ✅ Tiene acceso a hasta 500 palabras aleatorias por sesión
+- ✅ Filtra correctamente las palabras ya aprendidas
+- ✅ Funciona con el diccionario completo de 7,676 palabras

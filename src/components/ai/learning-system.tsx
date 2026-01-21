@@ -96,16 +96,35 @@ const LearningSystem = () => {
   // Obtener palabras no aprendidas
   const getUnlearnedWords = useCallback(async () => {
     try {
-      const res = await fetch('/api/dictionary');
-      if (res.ok) {
-        const data = await res.json();
-        const allWords = data.entries || [];
-        // Filtrar palabras ya aprendidas
-        const unlearnedWords = allWords.filter((word: any) => 
-          !progress.learnedWords.includes(word.id)
-        );
-        return unlearnedWords;
+      // Obtener muchas palabras (el límite máximo del API es 100 por request)
+      // Vamos a hacer múltiples requests para obtener más palabras
+      const allWords: any[] = [];
+      let page = 1;
+      const limit = 100;
+      let hasMore = true;
+      
+      // Obtener hasta 500 palabras (5 páginas)
+      while (hasMore && page <= 5) {
+        const res = await fetch(`/api/dictionary?limit=${limit}&page=${page}`);
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.items || [];
+          if (items.length > 0) {
+            allWords.push(...items);
+            page++;
+          } else {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
       }
+      
+      // Filtrar palabras ya aprendidas
+      const unlearnedWords = allWords.filter((word: any) => 
+        !progress.learnedWords.includes(word.id)
+      );
+      return unlearnedWords;
     } catch (error) {
       console.error('Error obteniendo palabras:', error);
     }
@@ -213,12 +232,28 @@ const LearningSystem = () => {
     setCurrentQuestionIndex(0);
     
     try {
-      // Obtener todas las palabras
-      const res = await fetch('/api/dictionary');
-      if (!res.ok) throw new Error('Error obteniendo palabras');
+      // Obtener palabras (múltiples páginas para tener más opciones)
+      const allWords: any[] = [];
+      let page = 1;
+      const limit = 100;
+      let hasMore = true;
       
-      const data = await res.json();
-      const allWords = data.entries || [];
+      // Obtener hasta 300 palabras (3 páginas)
+      while (hasMore && page <= 3) {
+        const res = await fetch(`/api/dictionary?limit=${limit}&page=${page}`);
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.items || [];
+          if (items.length > 0) {
+            allWords.push(...items);
+            page++;
+          } else {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
       
       // Filtrar solo palabras aprendidas
       const learnedWords = allWords.filter((word: any) => 
