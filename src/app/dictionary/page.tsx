@@ -58,41 +58,24 @@ function toString(value: string | string[] | undefined) {
 export default async function DictionaryPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = searchParams;
   const q = toString(searchParams.q);
-  const page = toNumber(searchParams.page, 1);
-  const limit = toNumber(searchParams.limit, 50);
-  const rawLang = toString(searchParams.lang).trim().toLowerCase();
-  const lang: 'bubi' | 'es' = rawLang === 'es' ? 'es' : 'bubi';
-  const offset = (page - 1) * limit;
-
-  const orderBy = lang === 'es' ? 'spanish' : 'bubi';
+  const lang: 'bubi' | 'es' = toString(searchParams.lang).trim().toLowerCase() === 'es' ? 'es' : 'bubi';
 
   let rows: DictionaryRow[] = [];
-  let total = 0;
 
   const supabase = getSupabase();
-  if (q) {
-    // Usar RPC para búsqueda full-text
-    const { data, error } = await supabase.rpc('search_dictionary_entries', { search_term: q });
-    if (error) {
-      console.error('Supabase RPC search_dictionary_entries Error:', error);
-    } else {
-      rows = data || [];
-      total = data?.length || 0;
-    }
-  } else {
-    // Query normal para listar todo
-    const { data, count, error } = await supabase
-      .from('dictionary_entries')
-      .select('id, bubi, spanish, word_type, gender, number, nominal_class, plural_form, ipa, examples, variants, notes, created_by', { count: 'exact' })
-      .order(orderBy, { ascending: true })
-      .range(offset, offset + limit - 1);
+  
+  // Cargar TODAS las palabras (sin paginación)
+  const orderBy = lang === 'es' ? 'spanish' : 'bubi';
+  
+  const { data, error } = await supabase
+    .from('dictionary_entries')
+    .select('id, bubi, spanish, word_type, gender, number, nominal_class, plural_form, ipa, examples, variants, notes, created_by')
+    .order(orderBy, { ascending: true });
 
-    if (error) {
-      console.error('Supabase select Error:', error);
-    } else {
-      rows = data || [];
-      total = count ?? 0;
-    }
+  if (error) {
+    console.error('Supabase select Error:', error);
+  } else {
+    rows = data || [];
   }
 
   const jsonLd = {

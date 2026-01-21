@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft, Loader2 } from 'lucide-react';
+import { SearchX, Volume2, BookOpen, Sparkles, Copy, Check, ArrowRightLeft, Loader2, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { speak } from '@/lib/speech-synthesis';
@@ -39,6 +39,7 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
   const [searchLang, setSearchLang] = useState<'bubi' | 'es'>(initialLang);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [generatingIPA, setGeneratingIPA] = useState<Set<number>>(new Set());
+  const [generatingExamples, setGeneratingExamples] = useState<Set<number>>(new Set());
 
   // Tiempo real con Supabase
   useEffect(() => {
@@ -177,6 +178,40 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
       alert('No se pudo generar la pronunciación');
     } finally {
       setGeneratingIPA(prev => {
+        const next = new Set(prev);
+        next.delete(entry.id);
+        return next;
+      });
+    }
+  };
+
+  const generateExamples = async (entry: DictionaryEntry) => {
+    if (generatingExamples.has(entry.id)) return;
+
+    setGeneratingExamples(prev => new Set(prev).add(entry.id));
+
+    try {
+      const res = await fetch('/api/ai/examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          word: entry.bubi, 
+          spanish: entry.spanish,
+          wordType: entry.word_type 
+        }),
+      });
+
+      if (!res.ok) throw new Error('Error generando ejemplos');
+
+      const data = await res.json();
+      
+      // Abrir en nueva pestaña o mostrar en modal
+      window.open(`/ai-features?word=${encodeURIComponent(entry.bubi)}`, '_blank');
+    } catch (error) {
+      console.error('Error generando ejemplos:', error);
+      alert('No se pudieron generar los ejemplos');
+    } finally {
+      setGeneratingExamples(prev => {
         const next = new Set(prev);
         next.delete(entry.id);
         return next;
@@ -460,13 +495,41 @@ const DictionaryViewModern = ({ dictionary: initialDictionary, initialLang = 'bu
                 )}
 
                 {/* AI Features Link */}
-                <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800">
+                <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-sm font-semibold hover:bg-blue-50 dark:hover:bg-blue-950 hover:border-blue-400 transition-all"
+                    onClick={() => generateExamples(entry)}
+                    disabled={generatingExamples.has(entry.id)}
+                  >
+                    {generatingExamples.has(entry.id) ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generando...
+                      </>
+                    ) : (
+                      <>
+                        <Lightbulb className="w-4 h-4 mr-2" />
+                        Generar ejemplos
+                      </>
+                    )}
+                  </Button>
+                  
                   <a 
                     href={`/ai-features?word=${encodeURIComponent(entry.bubi)}`}
-                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-2 group/link transition-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
                   >
-                    <Sparkles className="w-4 h-4 group-hover/link:rotate-12 transition-transform" />
-                    <span className="group-hover/link:underline">Ver más con IA</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Ver más con IA
+                    </Button>
                   </a>
                 </div>
               </CardContent>

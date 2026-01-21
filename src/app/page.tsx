@@ -1,4 +1,5 @@
 import WordOfTheDay from "@/components/word-of-the-day";
+import Translator from "@/components/translator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,9 @@ const DashboardPage = async () => {
           </CardContent>
         </Card>
       </Link>
+
+      {/* Traductor Español-Bubi */}
+      <Translator />
 
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2 space-y-8 animate-fade-in-up">

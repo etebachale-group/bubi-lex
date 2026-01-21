@@ -43,8 +43,8 @@ db/verify-espanol-bubi-import.sql
 
 **Resultados esperados:**
 - Total de entradas: 2230
-- Con ejemplos: 714
-- Con variantes: 307
+- Con ejemplos: 0
+- Con variantes: 0
 
 ---
 
@@ -102,9 +102,9 @@ INSERT INTO dictionary_entries (
 | Métrica | Cantidad | Porcentaje |
 |---------|----------|------------|
 | Total de entradas | 2230 | 100% |
-| Con ejemplos | 714 | 32.0% |
-| Con variantes | 307 | 13.8% |
-| Con número | 9 | 0.4% |
+| Con ejemplos | 0 | 0.0% |
+| Con variantes | 0 | 0.0% |
+| Con número | 0 | 0.0% |
 | Con clase nominal | 1684 | 75.5% |
 
 ---
@@ -114,8 +114,8 @@ INSERT INTO dictionary_entries (
 | Aspecto | Bubi-Español | Español-Bubi |
 |---------|--------------|--------------|
 | Total de entradas | 5,446 | 2230 |
-| Con ejemplos | ~600 (11%) | 714 (32.0%) |
-| Con variantes | ~800 (15%) | 307 (13.8%) |
+| Con ejemplos | ~600 (11%) | 0 (0.0%) |
+| Con variantes | ~800 (15%) | 0 (0.0%) |
 | Calidad | Alta | Alta (mejorada) |
 
 ---

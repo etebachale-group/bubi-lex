@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Leer el JSON mejorado con definiciones limpias
-const jsonPath = path.join(process.cwd(), 'palabras', 'espanol-bubi-mejorado.json');
+// Leer el JSON limpio con definiciones en español correctas
+const jsonPath = path.join(process.cwd(), 'palabras', 'espanol-bubi-limpio.json');
 const entries = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
 console.log('📖 Generando SQL mejorado para Español-Bubi...\n');
@@ -47,6 +47,11 @@ function extractVariants(text) {
 
 // Función para limpiar definición
 function cleanDefinition(text, spanishWord) {
+  // Si el texto ya es solo la palabra en español (limpio), no hacer nada
+  if (text.trim().toLowerCase() === spanishWord.toLowerCase()) {
+    return text.trim();
+  }
+  
   let cleaned = text;
   
   // Remover la palabra en español del inicio
