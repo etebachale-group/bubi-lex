@@ -15,11 +15,15 @@ import {
   RefreshCw,
   Play,
   ArrowRight,
-  Volume2
+  Volume2,
+  Lock,
+  Star,
+  Flame,
+  GraduationCap
 } from "lucide-react";
 import { speak } from "@/lib/speech-synthesis";
 
-type LearningMode = 'menu' | 'session' | 'quiz' | 'progress';
+type LearningMode = 'menu' | 'lessons' | 'lesson-detail' | 'session' | 'quiz' | 'progress';
 
 type Word = {
   bubi: string;
@@ -505,7 +509,7 @@ const LearningSystem = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400 animate-pulse" />
-              <CardTitle className="text-2xl">Sistema de Aprendizaje Avanzado</CardTitle>
+              <CardTitle className="text-2xl">Sistema de Aprendizaje</CardTitle>
             </div>
             <Button 
               variant="outline" 
@@ -518,7 +522,7 @@ const LearningSystem = () => {
             </Button>
           </div>
           <CardDescription>
-            Aprende Bubi con sesiones personalizadas y quiz interactivos potenciados por IA
+            Elige cómo quieres aprender Bubi hoy
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -546,7 +550,23 @@ const LearningSystem = () => {
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* Opciones de aprendizaje */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Lecciones Estructuradas - NUEVO */}
+            <Button
+              onClick={() => setMode('lessons')}
+              className="h-auto py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <GraduationCap className="w-8 h-8" />
+                <div>
+                  <div className="font-bold">Lecciones</div>
+                  <div className="text-xs opacity-90">Curso estructurado</div>
+                </div>
+              </div>
+            </Button>
+
+            {/* Práctica Rápida */}
             <Button
               onClick={generateLearningSession}
               disabled={isLoading}
@@ -555,21 +575,22 @@ const LearningSystem = () => {
               <div className="flex flex-col items-center gap-2">
                 <BookOpen className="w-8 h-8" />
                 <div>
-                  <div className="font-bold">Sesión de Aprendizaje</div>
-                  <div className="text-xs opacity-90">Aprende 5 palabras nuevas</div>
+                  <div className="font-bold">Práctica Rápida</div>
+                  <div className="text-xs opacity-90">5 palabras aleatorias</div>
                 </div>
               </div>
             </Button>
 
+            {/* Quiz */}
             <Button
               onClick={generateQuiz}
               disabled={isLoading || progress.learnedWords.length < 3}
-              className="h-auto py-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white disabled:opacity-50"
+              className="h-auto py-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50"
             >
               <div className="flex flex-col items-center gap-2">
                 <Target className="w-8 h-8" />
                 <div>
-                  <div className="font-bold">Quiz Interactivo</div>
+                  <div className="font-bold">Quiz</div>
                   <div className="text-xs opacity-90">
                     {progress.learnedWords.length < 3 
                       ? 'Aprende 3 palabras primero' 
@@ -584,16 +605,16 @@ const LearningSystem = () => {
             <div className="text-center py-4">
               <div className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400">
                 <RefreshCw className="w-5 h-5 animate-spin" />
-                <span>Generando contenido con IA...</span>
+                <span>Generando contenido...</span>
               </div>
             </div>
           )}
 
           <div className="grid gap-3 md:grid-cols-3 pt-4 border-t">
             <div className="text-center p-3 bg-white/50 dark:bg-gray-900/50 rounded-lg">
-              <Sparkles className="w-6 h-6 mx-auto mb-2 text-purple-600 dark:text-purple-400" />
-              <div className="text-sm font-semibold">Sin Repetición</div>
-              <div className="text-xs text-muted-foreground">Siempre palabras nuevas</div>
+              <GraduationCap className="w-6 h-6 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
+              <div className="text-sm font-semibold">Curso Completo</div>
+              <div className="text-xs text-muted-foreground">12 lecciones paso a paso</div>
             </div>
             <div className="text-center p-3 bg-white/50 dark:bg-gray-900/50 rounded-lg">
               <Zap className="w-6 h-6 mx-auto mb-2 text-yellow-600 dark:text-yellow-400" />
@@ -606,6 +627,97 @@ const LearningSystem = () => {
               <div className="text-xs text-muted-foreground">Logros y puntos</div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Lista de lecciones estructuradas
+  if (mode === 'lessons') {
+    const lessons = [
+      { id: 1, title: "Introducción y Saludos", desc: "Saludos básicos y presentaciones", status: "available", time: "15 min", words: 10, category: "Saludos" },
+      { id: 2, title: "Números del 1 al 10", desc: "Sistema numérico básico", status: "locked", time: "20 min", words: 10, category: "Números" },
+      { id: 3, title: "La Familia", desc: "Miembros de la familia", status: "locked", time: "25 min", words: 15, category: "Familia" },
+      { id: 4, title: "Colores y Formas", desc: "Vocabulario visual básico", status: "locked", time: "20 min", words: 12, category: "Colores" },
+      { id: 5, title: "Comida y Bebida", desc: "Alimentos comunes", status: "locked", time: "30 min", words: 20, category: "Comida" },
+      { id: 6, title: "El Cuerpo Humano", desc: "Partes del cuerpo", status: "locked", time: "25 min", words: 18, category: "Cuerpo" },
+      { id: 7, title: "La Casa", desc: "Objetos y habitaciones", status: "locked", time: "30 min", words: 20, category: "Casa" },
+      { id: 8, title: "Verbos Básicos", desc: "Acciones cotidianas", status: "locked", time: "35 min", words: 15, category: "Verbos" },
+      { id: 9, title: "Clases Nominales", desc: "Sistema de prefijos", status: "locked", time: "40 min", words: 0, category: "Gramática" },
+      { id: 10, title: "Construcción de Oraciones", desc: "Orden S-V-O", status: "locked", time: "40 min", words: 0, category: "Gramática" },
+      { id: 11, title: "Conversación Básica", desc: "Diálogos simples", status: "locked", time: "45 min", words: 25, category: "Conversación" },
+      { id: 12, title: "Cultura Bubi", desc: "Tradiciones y costumbres", status: "locked", time: "30 min", words: 15, category: "Cultura" },
+    ];
+
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <CardTitle>Curso Estructurado de Bubi</CardTitle>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setMode('menu')}>
+              Volver
+            </Button>
+          </div>
+          <CardDescription>
+            12 lecciones desde principiante hasta intermedio
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {lessons.map((lesson) => {
+            const isLocked = lesson.status === 'locked';
+            return (
+              <div
+                key={lesson.id}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  isLocked
+                    ? 'border-gray-200 dark:border-gray-800 opacity-60'
+                    : 'border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 cursor-pointer'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-lg ${isLocked ? 'bg-gray-200 dark:bg-gray-800' : 'bg-blue-100 dark:bg-blue-900'}`}>
+                    {isLocked ? (
+                      <Lock className="w-6 h-6 text-gray-500" />
+                    ) : (
+                      <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-bold text-lg">{lesson.title}</h3>
+                        <p className="text-sm text-muted-foreground">{lesson.desc}</p>
+                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {lesson.time}
+                          </span>
+                          {lesson.words > 0 && (
+                            <span className="flex items-center gap-1">
+                              <BookOpen className="w-3 h-3" />
+                              {lesson.words} palabras
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs">
+                            {lesson.category}
+                          </span>
+                        </div>
+                      </div>
+                      {!isLocked && (
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Play className="w-4 h-4 mr-1" />
+                          Empezar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
     );
