@@ -91,6 +91,13 @@ const LearningSystem = () => {
     quizzesTaken: 0,
     level: 1,
   });
+  
+  // Estados para el quiz de la lección
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
+  const [showQuizExp, setShowQuizExp] = useState(false);
 
   // Cargar progreso del usuario
   useEffect(() => {
@@ -388,12 +395,22 @@ const LearningSystem = () => {
     setScore(0);
     setAnsweredQuestions(0);
     setCurrentLesson(null);
+    setQuizStarted(false);
+    setQuizIndex(0);
+    setQuizScore(0);
+    setQuizAnswer(null);
+    setShowQuizExp(false);
   };
 
   // Abrir una lección
   const openLesson = (lesson: LessonData) => {
     setCurrentLesson(lesson);
     setMode('lesson-detail');
+    setQuizStarted(false);
+    setQuizIndex(0);
+    setQuizScore(0);
+    setQuizAnswer(null);
+    setShowQuizExp(false);
   };
 
   // Pronunciar palabra
@@ -890,12 +907,6 @@ const LearningSystem = () => {
       { q: "¿Cuántas vocales tiene Bubi?", opts: ["5", "6", "7", "8"], correct: 2, exp: "7 vocales: a,e,ɛ,i,o,ɔ,u" },
       { q: "Prefijo Clase 1:", opts: ["ba-", "bo-", "mo-", "li-"], correct: 1, exp: "Cl.1 usa 'bo-' para personas singulares" },
     ];
-
-    const [quizStarted, setQuizStarted] = useState(false);
-    const [quizIndex, setQuizIndex] = useState(0);
-    const [quizScore, setQuizScore] = useState(0);
-    const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
-    const [showQuizExp, setShowQuizExp] = useState(false);
 
     const handleQuizAnswer = (idx: number) => {
       if (showQuizExp) return;
