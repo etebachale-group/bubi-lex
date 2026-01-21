@@ -161,7 +161,7 @@ const LearningSystem = () => {
         // Fallback con las palabras seleccionadas
         setSessionData({
           words: selectedWords,
-          examples: selectedWords.slice(0, 3).map(w => ({
+          examples: selectedWords.slice(0, 3).map((w: Word) => ({
             bubi: `${w.bubi} ló bótó`,
             spanish: `${w.spanish} está en la casa`,
           })),
