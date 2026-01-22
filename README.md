@@ -13,21 +13,41 @@ Diccionario digital interactivo de la lengua Bubi con funcionalidades avanzadas 
 
 ### Sistema de Colaboradores - Instalación Pendiente
 
-**Problema**: Error HTTP 500 al agregar colaboradores  
+**Síntoma**: Error HTTP 500 al agregar colaboradores  
 **Causa**: Tabla `user_roles` no existe en Supabase  
-**Solución**: Ejecutar script SQL
 
-#### ⚡ Pasos Rápidos:
+#### ⚡ Solución Rápida (5 minutos):
 
-1. Ir a Supabase → SQL Editor
-2. Abrir archivo: `db/add-user-roles-system.sql`
-3. **CAMBIAR** email del admin (línea 71)
-4. Ejecutar script completo
-5. Verificar tabla creada
+1. **Ir a Supabase**:
+   - [https://supabase.com](https://supabase.com) → Tu proyecto → SQL Editor
 
-#### 📖 Guía Completa:
+2. **Abrir archivo**: `db/add-user-roles-system.sql`
 
-Ver: `docs/GUIA-INSTALACION-COLABORADORES.md`
+3. **IMPORTANTE**: Cambiar línea 71:
+   ```sql
+   VALUES ('admin@bubilex.com', TRUE, TRUE)
+   ```
+   Por tu email real:
+   ```sql
+   VALUES ('tu_email@ejemplo.com', TRUE, TRUE)
+   ```
+
+4. **Ejecutar**: Copiar todo el script → Pegar en SQL Editor → Run
+
+5. **Verificar**: Ejecutar `db/verify-user-roles-table.sql`
+
+#### 📖 Guías Disponibles:
+
+- **Diagnóstico rápido**: `docs/DIAGNOSTICO-RAPIDO.md` ⭐
+- **Guía completa**: `docs/GUIA-INSTALACION-COLABORADORES.md`
+- **Verificación**: `db/verify-user-roles-table.sql`
+
+#### 🔧 Formulario de Admin Actualizado:
+
+El formulario del admin ahora tiene **todos los campos necesarios**:
+- ✅ Información básica (bubi, spanish, ipa)
+- ✅ Información gramatical (tipo, género, número, clase nominal, plural)
+- ✅ Información adicional (variantes, ejemplos, notas culturales)
 
 ---
 
